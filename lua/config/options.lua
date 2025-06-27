@@ -1,5 +1,18 @@
 local opt = vim.opt
 
+-- Leader Keys
+vim.g.mapleader = " "
+vim.g.maplocalleader = "\\"
+
+-- Performance
+opt.updatetime = 200
+opt.timeoutlen = 500
+
+-- Integration
+opt.mouse = "a"
+opt.clipboard = "unnamedplus"
+opt.completeopt = { "menu", "menuone", "noselect" }
+
 -- UI
 opt.number = true
 opt.relativenumber = false
@@ -32,15 +45,6 @@ opt.ignorecase = true
 opt.smartcase = true
 opt.hlsearch = true
 opt.incsearch = true
-
--- Integration
-opt.mouse = "a"
-opt.clipboard = "unnamedplus"
-opt.completeopt = { "menu", "menuone", "noselect" }
-
--- Performance
-opt.updatetime = 200
-opt.timeoutlen = 500
 
 -- Windows
 opt.splitright = true
