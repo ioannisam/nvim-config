@@ -1,0 +1,42 @@
+# <type>[optional scope]: <description>
+# [optional body]
+# [optional footer(s)]
+#
+# Imperative Mood: "add plugin" not "added plugin"!
+# "If applied, this commit will <message>"
+#
+# TYPES:
+# - fix:       bug fix
+# - feat:      new feature or plugin
+# - docs:      documentation changes
+# - perf:      performance improvements
+# - test:      adding or fixing tests
+# - chore:     maintenance tasks, builds, or tooling changes
+# - style:     code style changes (formatting, whitespace, no code change)
+# - refactor:  code changes that neither fix a bug nor add a feature
+#
+# SCOPES:
+# - navigation
+# - manager
+# - options
+# - keymaps
+# - console
+# - editor
+# - docs
+# - lsp
+# - git
+# - ai
+# - ui
+# - fun
+#
+# EXAMPLE:
+#
+# feat(lsp): add support for rust-analyzer
+#
+# Integrated rust-tools.nvim for enhanced Rust language
+# features, including inlay hints and hover actions.
+#
+# Fixes #42
+# BREAKING CHANGE: updated LSP config requires Neovim 0.8+
+#
+# via: https://www.conventionalcommits.org/en/v1.0.0/
