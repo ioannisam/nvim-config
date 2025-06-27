@@ -1,0 +1,49 @@
+local opt = vim.opt
+
+-- UI
+opt.number = true
+opt.relativenumber = false
+opt.cursorline = true
+opt.termguicolors = true
+opt.signcolumn = "yes"
+opt.scrolloff = 8
+opt.whichwrap:append("<,>,h,l")
+opt.wrap = false
+opt.cmdheight = 1
+opt.fillchars = { eob = " " }
+opt.laststatus = 3
+-- opt.list = true
+-- opt.listchars = { tab = "→ ", trail = "·", space = "␣" }
+
+-- Indentation
+opt.tabstop = 4
+opt.shiftwidth = 4
+opt.expandtab = true
+opt.smartindent = true
+opt.autoindent = true
+
+-- Backtrack
+opt.undofile = true
+opt.backup = false
+opt.swapfile = false
+
+-- Searching
+opt.ignorecase = true
+opt.smartcase = true
+opt.hlsearch = true
+opt.incsearch = true
+
+-- Integration
+opt.mouse = "a"
+opt.clipboard = "unnamedplus"
+opt.completeopt = { "menu", "menuone", "noselect" }
+
+-- Performance
+opt.updatetime = 200
+opt.timeoutlen = 500
+
+-- Windows
+opt.splitright = true
+opt.splitbelow = true
+
+opt.shortmess:append("I") -- no intro message
