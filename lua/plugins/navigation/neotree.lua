@@ -104,7 +104,9 @@ return {
             enable_diagnostics = true,
             filesystem = {
                 hijack_netrw_behavior = "open_default",
-                follow_current_file = true,
+                follow_current_file = {
+                    enabled = true,
+                },
                 group_empty_dirs = false,
                 use_libuv_file_watcher = true,
                 filtered_items = {
@@ -160,7 +162,9 @@ return {
             },
             
             buffers = {
-                follow_current_file = true,
+                follow_current_file = {
+                    enabled = true,
+                },
                 group_empty_dirs = false,
                 show_unloaded = true,
                 window = {
@@ -244,7 +248,7 @@ return {
         })
         vim.keymap.set('n', '<leader>n', ':Neotree toggle<CR>', { noremap = true, silent = true })
         vim.keymap.set('n', '<leader>b', ':Neotree buffers toggle<CR>', { noremap = true, silent = true })
-        vim.keymap.set('n', '<leader>g', ':Neotree git_status toggle<CR>', { noremap = true, silent = true })
+        vim.keymap.set('n', '<leader>s', ':Neotree git_status toggle<CR>', { noremap = true, silent = true })
         vim.keymap.set('n', '<leader>l', ':bnext<CR>', { noremap = true, silent = true })
         vim.keymap.set('n', '<leader>h', ':bprev<CR>', { noremap = true, silent = true })
         vim.keymap.set('n', '<leader>w', '<C-w>w', { noremap = true, silent = true })
