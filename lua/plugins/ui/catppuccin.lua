@@ -1,5 +1,3 @@
--- this is a comment what difference does it make?
-
 return {
     "catppuccin/nvim",
     name = "catppuccin",
@@ -15,6 +13,7 @@ return {
             term_colors = true,
             default_integrations = true,
             integrations = {
+                neotree = true
                 -- fill integrations as you add plugins
             },
         })
