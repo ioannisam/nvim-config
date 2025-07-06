@@ -13,7 +13,8 @@ return {
             term_colors = true,
             default_integrations = true,
             integrations = {
-                neotree = true
+                neotree = true,
+                telescope = true,
                 -- fill integrations as you add plugins
             },
         })
