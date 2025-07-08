@@ -15,6 +15,7 @@ return {
             integrations = {
                 neotree = true,
                 telescope = true,
+                -- toggleterm = true,
                 -- fill integrations as you add plugins
             },
         })
