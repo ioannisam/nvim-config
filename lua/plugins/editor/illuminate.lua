@@ -1,0 +1,30 @@
+return {
+    "RRethy/vim-illuminate",
+    event = { "BufReadPost", "BufNewFile" },
+    config = function()
+        require('illuminate').configure({
+            delay = 100,
+            under_cursor = true,
+            large_file_cutoff = 2000,
+            min_count_to_highlight = 1,
+
+            providers = {
+                'lsp',
+                'treesitter',
+                'regex',
+            },
+            filetypes_denylist = {
+                'dirvish',
+                'fugitive',
+                'alpha',
+                'NvimTree',
+                'lazy',
+                'TelescopePrompt',
+                'spectre_panel',
+                'toggleterm',
+                'DressingSelect',
+                'neo-tree',
+            },
+        })
+    end
+}

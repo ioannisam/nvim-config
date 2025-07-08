@@ -16,6 +16,7 @@ return {
                 neotree = true,
                 telescope = true,
                 -- toggleterm = true,
+                illuminate = true,
                 -- fill integrations as you add plugins
             },
         })
