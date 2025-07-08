@@ -18,6 +18,7 @@ return {
                 -- toggleterm = true,
                 illuminate = true,
                 -- lualine = true,
+                alpha = true,
                 -- fill integrations as you add plugins
             },
         })
