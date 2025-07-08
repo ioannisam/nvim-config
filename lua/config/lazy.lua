@@ -18,6 +18,7 @@ require("lazy").setup({
     spec = {
         { import = "plugins.navigation" },
         { import = "plugins.console" },
+        { import = "plugins.editor" },
         { import = "plugins.ui" },
     },
     -- other settings
