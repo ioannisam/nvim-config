@@ -19,6 +19,7 @@ return {
                 illuminate = true,
                 -- lualine = true,
                 alpha = true,
+                beacon = false,
                 -- fill integrations as you add plugins
             },
         })
