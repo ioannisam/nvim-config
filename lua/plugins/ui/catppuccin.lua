@@ -17,6 +17,7 @@ return {
                 telescope = true,
                 -- toggleterm = true,
                 illuminate = true,
+                -- lualine = true,
                 -- fill integrations as you add plugins
             },
         })
