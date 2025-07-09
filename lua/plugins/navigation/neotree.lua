@@ -3,7 +3,7 @@ return {
     branch = "v3.x",
     dependencies = {
         "nvim-lua/plenary.nvim",
-        "MunifTanjim/nui.nvim", 
+        "MunifTanjim/nui.nvim",
         "nvim-tree/nvim-web-devicons",
     },
     config = function()
@@ -27,7 +27,7 @@ return {
                 end
             end)
         end
-        
+
         require("neo-tree").setup({
 
             source_selector = {
@@ -99,7 +99,7 @@ return {
                     ["?"] = "show_help",
                 },
             },
-            
+
             popup_border_style = "rounded",
             enable_diagnostics = true,
             filesystem = {

@@ -9,6 +9,7 @@ return {
                 "rust_analyzer",
                 "clangd",
                 "texlab",
+                "ltex",
             },
         },
     },
@@ -23,7 +24,7 @@ return {
                 capabilities = cmp_nvim_lsp.default_capabilities()
             end
 
-            local on_attach = function(_, bufnr)
+            local on_attach = function(client, bufnr)
                 local bufmap = function(mode, lhs, rhs)
                     vim.keymap.set(mode, lhs, rhs, { buffer = bufnr })
                 end
@@ -33,6 +34,18 @@ return {
                 bufmap("n", "<leader>rn", vim.lsp.buf.rename)
                 bufmap("n", "<leader>ca", vim.lsp.buf.code_action)
                 bufmap("n", "gr", vim.lsp.buf.references)
+
+                bufmap("n", "<leader>lf", function()
+                    vim.lsp.buf.format({
+                        async = true,
+                        bufnr = bufnr,
+                    })
+                end)
+
+
+                vim.diagnostic.config({
+                    update_in_insert = false,
+                })
             end
 
             local servers = {
@@ -49,6 +62,23 @@ return {
                 clangd = {},
                 texlab = {},
                 bashls = {},
+                ltex = {
+                    settings = {
+                        ltex = {
+                            language = "en",
+                            additionalRules = {
+                                languageModel = "~/ngrams",
+                            },
+                            dictionary = {
+                                ["en"] = {},
+                                ["el"] = {},
+                            },
+                            enabled = { "latex", "markdown", "text" },
+                            languages = { "en", "el" },
+                        },
+                    },
+                    filetypes = { "latex", "markdown", "text" },
+                },
             }
 
             local flags = {
@@ -70,5 +100,5 @@ return {
             vim.keymap.set("n", "pd", vim.diagnostic.goto_prev)
             vim.keymap.set("n", "nd", vim.diagnostic.goto_next)
         end,
-    }
+    },
 }
