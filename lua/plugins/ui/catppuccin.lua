@@ -21,6 +21,12 @@ return {
                 alpha = true,
                 beacon = false,
                 mason = false,
+                barbecue = {
+                    dim_dirname = true,
+                    bold_basename = true,
+                    dim_context = false,
+                    alt_background = false,
+                },
                 -- fill integrations as you add plugins
             },
         })

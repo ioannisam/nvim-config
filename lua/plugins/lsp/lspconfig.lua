@@ -25,6 +25,12 @@ return {
             end
 
             local on_attach = function(client, bufnr)
+
+                local navic_ok, navic = pcall(require, "nvim-navic")
+                if navic_ok and client.server_capabilities.documentSymbolProvider then
+                    navic.attach(client, bufnr)
+                end
+
                 local bufmap = function(mode, lhs, rhs)
                     vim.keymap.set(mode, lhs, rhs, { buffer = bufnr })
                 end
