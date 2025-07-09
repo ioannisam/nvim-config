@@ -20,6 +20,7 @@ return {
                 -- lualine = true,
                 alpha = true,
                 beacon = false,
+                mason = false,
                 -- fill integrations as you add plugins
             },
         })
