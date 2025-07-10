@@ -158,9 +158,9 @@ return {
                     },
                 },
                 commands = {},
-                
+
             },
-            
+
             buffers = {
                 follow_current_file = {
                     enabled = true,
@@ -173,7 +173,7 @@ return {
                     },
                 },
             },
-            
+
             enable_git_status = true,
             git_status = {
                 window = {
@@ -247,10 +247,6 @@ return {
             }
         })
         vim.keymap.set('n', '<leader>n', ':Neotree toggle<CR>', { noremap = true, silent = true })
-        vim.keymap.set('n', '<leader>b', ':Neotree buffers toggle<CR>', { noremap = true, silent = true })
-        vim.keymap.set('n', '<leader>s', ':Neotree git_status toggle<CR>', { noremap = true, silent = true })
-        vim.keymap.set('n', '<leader>l', ':bnext<CR>', { noremap = true, silent = true })
-        vim.keymap.set('n', '<leader>h', ':bprev<CR>', { noremap = true, silent = true })
         vim.keymap.set('n', '<leader>w', '<C-w>w', { noremap = true, silent = true })
         vim.diagnostic.config({
             signs = {

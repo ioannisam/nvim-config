@@ -10,6 +10,7 @@ opt.timeoutlen = 500
 
 -- Integration
 opt.mouse = "a"
+vim.o.mousemoveevent = true
 opt.clipboard = "unnamedplus"
 opt.completeopt = { "menu", "menuone", "noselect" }
 
