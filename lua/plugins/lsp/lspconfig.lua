@@ -36,7 +36,7 @@ return {
                 end
 
                 bufmap("n", "gd", vim.lsp.buf.definition)
-                bufmap("n", "K", vim.lsp.buf.hover)
+                bufmap("n", "H", vim.lsp.buf.hover) -- find a new key for H
                 bufmap("n", "<leader>rn", vim.lsp.buf.rename)
                 bufmap("n", "<leader>ca", vim.lsp.buf.code_action)
                 bufmap("n", "gr", vim.lsp.buf.references)
