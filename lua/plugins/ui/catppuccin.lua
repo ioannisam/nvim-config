@@ -20,13 +20,17 @@ return {
                 -- lualine = true,
                 alpha = true,
                 beacon = false,
-                mason = false,
+                mason = true,
                 barbecue = {
                     dim_dirname = true,
                     bold_basename = true,
                     dim_context = false,
                     alt_background = false,
                 },
+                colorful_winsep = {
+                    enabled = true,
+                    color = "blue",
+                }
                 -- fill integrations as you add plugins
             },
         })
