@@ -27,10 +27,14 @@ return {
                     dim_context = false,
                     alt_background = false,
                 },
+                indent_blankline = false,
+                gitsigns = true,
                 colorful_winsep = {
                     enabled = true,
                     color = "blue",
-                }
+                },
+                markdown = true,
+                markview = true,
                 -- fill integrations as you add plugins
             },
         })
