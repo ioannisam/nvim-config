@@ -19,6 +19,7 @@ require("lazy").setup({
         { import = "plugins.navigation" },
         { import = "plugins.console" },
         { import = "plugins.editor" },
+        { import = "plugins.docs"},
         { import = "plugins.lsp" },
         { import = "plugins.git"},
         { import = "plugins.ui" },
