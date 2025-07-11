@@ -20,6 +20,7 @@ require("lazy").setup({
         { import = "plugins.console" },
         { import = "plugins.editor" },
         { import = "plugins.lsp" },
+        { import = "plugins.git"},
         { import = "plugins.ui" },
     },
     -- other settings
