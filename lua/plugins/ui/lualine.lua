@@ -1,25 +1,39 @@
 return {
-    "nvim-lualine/lualine.nvim",
-    dependencies = { "nvim-tree/nvim-web-devicons" },
-    event = "VeryLazy",
-    config = function()
-        require("lualine").setup({
-            options = {
-                theme = "catppuccin",
-                icons_enabled = true,
-                component_separators = { left = "", right = "" },
-                section_separators = { left = "", right = "" },
-                disabled_filetypes = { "dashboard", "NvimTree", "lazy" },
-            },
-            sections = {
-                lualine_a = { "mode" },
-                lualine_b = { "branch", "diff", "diagnostics" },
-                lualine_c = { { "filename", path = 1 } },
-                lualine_x = { "encoding", "fileformat", "filetype" },
-                lualine_y = { "progress" },
-                lualine_z = { "location" },
-            },
-            extensions = { "nvim-tree", "toggleterm", "lazy" },
-        })
-    end,
+	"nvim-lualine/lualine.nvim",
+	dependencies = {
+		"nvim-tree/nvim-web-devicons",
+		"ThePrimeagen/harpoon",
+	},
+	event = "BufReadPre",
+	config = function()
+
+        local function harpoons()
+            local ok, harpoon = pcall(require, "harpoon")
+            if not ok then return "" end
+
+            local list = harpoon:list()
+            local count = list and #list.items or 0
+
+            return count > 0 and ("󰛢 " .. count) or "" -- 󰀱
+        end
+	
+		require("lualine").setup({
+			options = {
+				theme = "catppuccin",
+				icons_enabled = true,
+				component_separators = { left = "", right = "" },
+				section_separators = { left = "", right = "" },
+				disabled_filetypes = { "dashboard", "NvimTree", "lazy" },
+			},
+			sections = {
+				lualine_a = { "mode" },
+				lualine_b = { "branch", "diff", "diagnostics", harpoons },
+				lualine_c = { { "filename", path = 1 } },
+				lualine_x = { "encoding", "fileformat", "filetype" },
+				lualine_y = { "progress" },
+				lualine_z = { "location" },
+			},
+			extensions = { "nvim-tree", "toggleterm", "lazy" },
+		})
+	end,
 }
