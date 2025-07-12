@@ -96,7 +96,7 @@ return {
         vim.keymap.set("n", "<leader>fh", builtin.help_tags, { desc = "Help Tags" })
         vim.keymap.set(
             "n",
-            "<leader>g",
+            "<leader>fw",
             require("telescope.builtin").grep_string,
             { desc = "Grep String under Cursor" }
         )

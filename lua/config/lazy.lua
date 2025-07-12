@@ -17,6 +17,7 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
     spec = {
         { import = "plugins.navigation" },
+        { import = "plugins.keymaps" },
         { import = "plugins.console" },
         { import = "plugins.editor" },
         { import = "plugins.docs"},
