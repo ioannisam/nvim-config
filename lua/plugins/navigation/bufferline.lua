@@ -151,6 +151,7 @@ return {
         )
 
         vim.keymap.set("n", "<leader>bd", function()
+            local bufnum = vim.api.nvim_get_current_buf()
             if vim.api.nvim_buf_is_valid(bufnum) then
                 require("bufdelete").bufdelete(bufnum, true)
             end
