@@ -49,9 +49,11 @@ return {
                 refresh_winbar(term)
             end,
             on_exit = function(term)
-                cleanup(term.id)
-                table.insert(freed_ids, term.id)
-                vim.notify("Terminal " .. term.id .. " exited", vim.log.levels.INFO)
+                if terminals[term.id] then
+                    cleanup(term.id)
+                    table.insert(freed_ids, term.id)
+                    vim.notify("Terminal " .. term.id .. " exited", vim.log.levels.INFO)
+                end
             end,
             close_on_exit = true,
             persist_mode = true,
