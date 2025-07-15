@@ -30,23 +30,38 @@ return {
             end
         end
 
+        local function get_term_window_by_bufnr(bufnr)
+            for _, win in ipairs(vim.api.nvim_list_wins()) do
+                if vim.api.nvim_win_get_buf(win) == bufnr then
+                    return win
+                end
+            end
+        end
+
         local function cleanup(id)
             terminals[id] = nil
             term_names[id] = nil
         end
 
         require("toggleterm").setup({
-            size = function(term)
+            size = function()
                 return math.floor(vim.o.lines*0.3)
             end,
-        
+
             on_open = function(term)
-                terminals[term.id] = term
-                term.window = vim.api.nvim_get_current_win()
+                vim.defer_fn(function()
+                    local win = get_term_window_by_bufnr(term.bufnr)
+                    if win and vim.api.nvim_win_is_valid(win) then
+                        term.window = win
+                        vim.api.nvim_set_hl(0, "WinBarTerm", { fg = "#a3be8c", bold = true })
+                        refresh_winbar(term)
+                    end
+                end, 30) -- delay to ensure buffer is placed in window
+
                 vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<Esc>", "<C-\\><C-n>", { noremap = true, silent = true })
-                vim.defer_fn(function() vim.cmd("stopinsert") end, 20)
-                vim.api.nvim_set_hl(0, "WinBarTerm", { fg = "#a3be8c", bold = true })
-                refresh_winbar(term)
+                vim.defer_fn(function()
+                    vim.cmd("stopinsert")
+                end, 20)
             end,
             on_exit = function(term)
                 if terminals[term.id] then
@@ -61,7 +76,6 @@ return {
         })
 
         vim.keymap.set("n", "<leader>tn", function()
-
             local h_terms = {}
             for _, t in pairs(terminals) do
                 if t.direction == "horizontal" then
@@ -80,10 +94,11 @@ return {
         end, { desc = "New horizontal terminal", noremap = true, silent = true })
 
         vim.keymap.set("n", "<leader>th", function()
-
             local h_terms = {}
             for _, t in pairs(terminals) do
-                if t.direction == "horizontal" then table.insert(h_terms, t) end
+                if t.direction == "horizontal" then
+                    table.insert(h_terms, t)
+                end
             end
 
             if #h_terms == 0 then
@@ -109,13 +124,14 @@ return {
         end, { desc = "Toggle horizontal terminals", noremap = true, silent = true })
 
         vim.keymap.set("n", "<leader>tr", function()
-
             local win = vim.api.nvim_get_current_win()
             for id, t in pairs(terminals) do
                 if t.window == win then
                     local current_name = term_names[id] or ("Terminal #" .. id)
                     vim.ui.input({ prompt = "New name: ", default = current_name }, function(input)
-                        if not input or input == "" then return end
+                        if not input or input == "" then
+                            return
+                        end
                         term_names[id] = input
                         vim.notify("Renamed to '" .. input .. "'", vim.log.levels.INFO)
                         refresh_winbar(t)
@@ -145,9 +161,13 @@ return {
                     return string.format("[%d] %s (%s)", x.id, x.name, x.dir)
                 end,
             }, function(choice)
-                if not choice then return end
+                if not choice then
+                    return
+                end
                 vim.ui.input({ prompt = "New name: ", default = choice.name }, function(input)
-                    if not input or input == "" then return end
+                    if not input or input == "" then
+                        return
+                    end
                     term_names[choice.id] = input
                     vim.notify("Renamed to '" .. input .. "'", vim.log.levels.INFO)
                     refresh_winbar(choice.term)
@@ -156,7 +176,6 @@ return {
         end, { desc = "Rename terminal", noremap = true, silent = true })
 
         vim.keymap.set("n", "<leader>td", function()
-
             local win = vim.api.nvim_get_current_win()
             for id, t in pairs(terminals) do
                 if t.window == win then
@@ -185,16 +204,20 @@ return {
 
             vim.ui.select(items, {
                 prompt = "Delete terminal:",
-                format_item = function(x) return string.format("[%d] %s (%s)", x.id, x.name, x.dir) end
+                format_item = function(x)
+                    return string.format("[%d] %s (%s)", x.id, x.name, x.dir)
+                end,
             }, function(choice)
-                if not choice then return end
+                if not choice then
+                    return
+                end
                 choice.term:shutdown()
                 cleanup(choice.id)
                 table.insert(freed_ids, choice.id)
                 vim.notify("Deleted terminal " .. choice.id, vim.log.levels.INFO)
             end)
         end, { desc = "Delete terminal", noremap = true, silent = true })
-        
+
         vim.keymap.set("n", "<leader>tt", function()
             vim.cmd("terminal")
             vim.api.nvim_feedkeys("i", "n", false)
