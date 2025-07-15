@@ -23,6 +23,7 @@ require("lazy").setup({
         { import = "plugins.docs"},
         { import = "plugins.lsp" },
         { import = "plugins.git"},
+        { import = "plugins.ai"},
         { import = "plugins.ui" },
     },
     -- other settings
