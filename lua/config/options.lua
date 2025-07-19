@@ -37,7 +37,6 @@ opt.smartindent = true
 opt.autoindent = true
 
 -- Backtrack
-opt.undofile = true
 opt.backup = false
 opt.swapfile = false
 
