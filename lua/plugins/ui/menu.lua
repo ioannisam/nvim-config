@@ -26,7 +26,7 @@ return {
                 require("menu").open(get_contextual_menu(), { mouse = true })
             end, { desc = "Open contextual menu (mouse)" })
 
-            vim.keymap.set("n", "<leader>m", function()
+            vim.keymap.set("n", "<leader>mm", function()
                 require("menu.utils").delete_old_menus()
                 require("menu").open(get_contextual_menu())
             end, { desc = "Open contextual menu (keyboard)" })
