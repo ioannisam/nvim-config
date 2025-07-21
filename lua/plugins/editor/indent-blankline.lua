@@ -4,20 +4,23 @@ return {
     main = "ibl",
     event = "VeryLazy",
     config = function()
+        local hooks = require("ibl.hooks")
+
+        hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
+            vim.api.nvim_set_hl(0, "IblIndent", { fg = "#575268", nocombine = true })
+            vim.api.nvim_set_hl(0, "IblScope",  { fg = "#8aadf4", nocombine = true })
+        end)
+
         require("ibl").setup({
-            indent = {
-                char = "│",
+            indent = { char = "│", highlight = "IblIndent" },
+            scope  = {
+                enabled    = true,
+                show_start = false,
+                show_end   = false,
+                highlight  = "IblScope",
             },
             whitespace = {
                 remove_blankline_trail = true,
-            },
-            scope = {
-                enabled = true,
-                show_start = false,
-                show_end = false,
-                include = {
-                    node_type = { "function", "if_statement", "for_statement", "while_statement", "class", "block" },
-                },
             },
             exclude = {
                 filetypes = {
