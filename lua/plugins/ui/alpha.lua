@@ -1,6 +1,10 @@
+-- alpha-nvim setup (fixed)
 return {
     "goolord/alpha-nvim",
-    dependencies = { "nvim-tree/nvim-web-devicons" },
+    dependencies = {
+        "nvim-tree/nvim-web-devicons",
+        "folke/persistence.nvim",
+    },
     event = "VimEnter",
     config = function()
         local alpha = require("alpha")
@@ -16,11 +20,26 @@ return {
         }
 
         dashboard.section.buttons.val = {
-            dashboard.button("n", "  New file", ":ene <BAR> startinsert <CR>"),
-            dashboard.button("r", "  Recent files", ":Telescope oldfiles<CR>"),
-            dashboard.button("f", "  Find file", ":Telescope find_files<CR>"),
-            dashboard.button("g", "  Find text", ":Telescope live_grep<CR>"),
-            dashboard.button("c", "  Config", ":e $MYVIMRC | cd %:p:h <CR>"),
+            dashboard.button("n", "  New File", ":ene <BAR> startinsert <CR>"),
+            dashboard.button("s", "♻️ Restore Session", function()
+                require("lazy").load({ plugins = { "persistence.nvim" } })
+
+                local cwd = vim.fn.getcwd()
+                local encoded = cwd:gsub(":", "%%")
+                    :gsub("/", "%%")
+                local session_path = vim.fn.stdpath("state") .. "/sessions/" .. encoded .. ".vim"
+
+                if vim.fn.filereadable(session_path) == 1 then
+                    require("persistence").load()
+                else
+                    vim.notify("No session for this directory. Opening session picker...", vim.log.levels.INFO)
+                    require("persistence").select()
+                end
+            end),
+            dashboard.button("r", "  Recent Files", ":Telescope oldfiles<CR>"),
+            dashboard.button("f", "  Find File", ":Telescope find_files<CR>"),
+            dashboard.button("g", "  Grep Text", ":Telescope live_grep<CR>"),
+            dashboard.button("c", "  Configuration", ":e $MYVIMRC | cd %:p:h <CR>"),
             dashboard.button("q", "  Quit", ":qa<CR>"),
         }
         dashboard.section.buttons.opts.position = "center"
@@ -36,7 +55,7 @@ return {
         }
 
         dashboard.config.layout = {
-            { type = "padding", val = 10 },
+            { type = "padding", val = 8 },
             dashboard.section.header,
             { type = "padding", val = 2 },
             dashboard.section.buttons,
