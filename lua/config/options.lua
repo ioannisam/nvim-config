@@ -39,6 +39,7 @@ opt.autoindent = true
 -- Backtrack
 opt.backup = false
 opt.swapfile = false
+opt.undofile = true
 
 -- Searching
 opt.ignorecase = true
