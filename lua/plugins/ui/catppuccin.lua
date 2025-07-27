@@ -35,6 +35,7 @@ return {
                 },
                 markdown = true,
                 markview = true,
+                notify = true,
                 -- fill integrations as you add plugins
             },
         })
