@@ -185,13 +185,31 @@ return {
                             local node = state.tree:get_node()
                             local path = node.path
 
-                            git_confirm("Revert changes to:" .. relative_path(path) .. "?", function()
+                            local cursor_pos = { 1, 0 }
+                            for _, win in ipairs(vim.api.nvim_list_wins()) do
+                                local buf = vim.api.nvim_win_get_buf(win)
+                                if vim.api.nvim_buf_get_name(buf) == path then
+                                    cursor_pos = vim.api.nvim_win_get_cursor(win)
+                                    break
+                                end
+                            end
+
+                            git_confirm("Revert changes to: " .. relative_path(path) .. "?", function()
                                 local result = vim.fn.system({ "git", "restore", path })
                                 if vim.v.shell_error == 0 then
+                                    local bufnr = vim.fn.bufnr(path)
+                                    if bufnr ~= -1 and vim.api.nvim_buf_is_loaded(bufnr) then
+                                        vim.cmd("e! " .. path)
+                                    end
+                                    vim.defer_fn(function()
+                                        vim.cmd(("normal! %dG0%dl"):format(cursor_pos[1], cursor_pos[2]))
+                                    end, 20)
+
                                     vim.notify("File reverted: " .. relative_path(path), vim.log.levels.INFO)
                                 else
-                                    vim.notify("Git restore failed:" .. result, vim.log.levels.ERROR)
+                                    vim.notify("Git restore failed: " .. result, vim.log.levels.ERROR)
                                 end
+
                                 require("neo-tree.sources.git_status").refresh(state)
                             end)
                         end,
@@ -199,7 +217,7 @@ return {
                         ["p"] = "git_push",
                         ["g"] = "git_commit_and_push",
 
-                        ["A"]  = "git_add_all",
+                        ["A"] = "git_add_all",
                         ["U"] = function(state)
                             vim.fn.system("git reset")
                             require("neo-tree.sources.git_status").refresh(state)
@@ -208,14 +226,20 @@ return {
                             git_confirm("Revert ALL files?", function()
                                 local result = vim.fn.system("git restore .")
                                 if vim.v.shell_error == 0 then
-                                    vim.notify("All files reverted.", vim.log.levels.INFO)
+                                    for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+                                        if vim.api.nvim_buf_is_loaded(bufnr) and vim.fn.filereadable(vim.api.nvim_buf_get_name(bufnr)) == 1 then
+                                            local path = vim.api.nvim_buf_get_name(bufnr)
+                                            vim.cmd("e! " .. path)
+                                        end
+                                    end
+                                    vim.notify("All files reverted and buffers reloaded.", vim.log.levels.INFO)
                                 else
                                     vim.notify("Git restore failed: " .. result, vim.log.levels.ERROR)
                                 end
                                 require("neo-tree.sources.git_status").refresh(state)
                             end)
                         end,
-                        },
+                    },
                 },
             },
 
@@ -246,6 +270,7 @@ return {
                 },
             }
         })
+
         vim.keymap.set('n', '<leader>n', ':Neotree toggle<CR>', { noremap = true, silent = true })
         vim.keymap.set('n', '<leader>w', '<C-w>w', { noremap = true, silent = true })
         vim.diagnostic.config({
