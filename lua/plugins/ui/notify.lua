@@ -26,8 +26,12 @@ return {
 
             vim.notify = notify
             vim.keymap.set("n", "<Esc>", function()
+                if vim.v.hlsearch == 1 then
+                    vim.cmd("nohlsearch")
+                end
+
                 notify.dismiss({ silent = true, pending = true })
-            end, { desc = "Dismiss notifications" })
+            end, { desc = "Esc: clear highlights and dismiss notifications" })
         end,
     },
 }
