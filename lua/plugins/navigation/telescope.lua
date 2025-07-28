@@ -15,11 +15,44 @@ return {
     config = function()
         local telescope = require("telescope")
         local actions = require("telescope.actions")
+        local action_state = require("telescope.actions.state")
+
+        local function open_selected_or_current(prompt_bufnr)
+            local picker = action_state.get_current_picker(prompt_bufnr)
+            local selections = picker:get_multi_selection()
+            local current_entry = action_state.get_selected_entry()
+            actions.close(prompt_bufnr)
+
+            local selected_files = {}
+
+            if not vim.tbl_isempty(selections) then
+                local found = false
+                for _, entry in ipairs(selections) do
+                    table.insert(selected_files, entry.value)
+                    if entry.value == current_entry.value then
+                        found = true
+                    end
+                end
+                -- Add current if not already selected
+                if not found then
+                    table.insert(selected_files, current_entry.value)
+                end
+            else
+                table.insert(selected_files, current_entry.value)
+            end
+
+            -- Open all selected
+            for _, file in ipairs(selected_files) do
+                vim.cmd("edit " .. file)
+            end
+        end
+
         telescope.setup({
             defaults = {
                 sorting_strategy = "ascending",
                 prompt_prefix = " ",
                 selection_caret = "▶ ",
+                multi_icon = "✚ ",
                 layout_config = {
                     horizontal = {
                         width = 0.9,
@@ -45,6 +78,14 @@ return {
                         ["<C-j>"] = actions.move_selection_next,
                         ["<C-k>"] = actions.move_selection_previous,
                         ["<esc>"] = actions.close,
+                        ["<Tab>"] = actions.toggle_selection + actions.move_selection_next,
+                        ["<S-Tab>"] = actions.toggle_selection + actions.move_selection_previous,
+                        ["<CR>"] = open_selected_or_current,
+                    },
+                    n = {
+                        ["<Tab>"] = actions.toggle_selection + actions.move_selection_next,
+                        ["<S-Tab>"] = actions.toggle_selection + actions.move_selection_previous,
+                        ["<CR>"] = open_selected_or_current,
                     },
                 },
             },
