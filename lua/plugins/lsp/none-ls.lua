@@ -13,6 +13,9 @@ return {
                     "latexindent",
                     "markdownlint",
                     "prettier",
+                    "black",
+                    "flake8",
+                    "mypy",
                 },
                 automatic_installation = true,
             })
@@ -61,6 +64,11 @@ return {
                     -- C/C++
                     formatting.clang_format,
                     diagnostics.cpplint,
+
+                    -- Python
+                    formatting.black,
+                    diagnostics.flake8,
+                    diagnostics.mypy,
 
                     -- LaTeX
                     formatting.latexindent,

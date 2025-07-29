@@ -8,6 +8,7 @@ return {
                 "bashls",
                 "rust_analyzer",
                 "clangd",
+                "pyright",
                 "texlab",
                 "ltex",
             },
@@ -66,8 +67,9 @@ return {
                 },
                 rust_analyzer = {},
                 clangd = {},
-                texlab = {},
+                pyright = {},
                 bashls = {},
+                texlab = {},
                 ltex = {
                     settings = {
                         ltex = {
