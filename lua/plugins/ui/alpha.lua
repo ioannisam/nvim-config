@@ -18,6 +18,15 @@ return {
 			"╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝",
 		}
 
+        vim.api.nvim_create_user_command("AlphaNewFile", function()
+            vim.ui.input({ prompt = "New file name: ", default = "untitled" }, function(input)
+                if input and input ~= "" then
+                    vim.cmd("e " .. vim.fn.fnameescape(input))
+                    vim.cmd("startinsert")
+                end
+            end)
+        end, {})
+
 		vim.api.nvim_create_user_command("AlphaRestoreSession", function()
 			require("lazy").load({ plugins = { "persistence.nvim" } })
 
@@ -34,7 +43,7 @@ return {
 		end, {})
 
 		dashboard.section.buttons.val = {
-			dashboard.button("n", "  New File", ":ene <BAR> startinsert <CR>"),
+            dashboard.button("n", "  New File", ":AlphaNewFile<CR>"),
 			dashboard.button("s", "♻️ Restore Session", ":AlphaRestoreSession<CR>"),
 			dashboard.button("r", "  Recent Files", ":Telescope oldfiles<CR>"),
 			dashboard.button("f", "  Find File", ":Telescope find_files<CR>"),
