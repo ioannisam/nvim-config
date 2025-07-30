@@ -19,23 +19,24 @@ return {
             "╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝",
         }
 
+        vim.api.nvim_create_user_command("AlphaRestoreSession", function()
+            require("lazy").load({ plugins = { "persistence.nvim" } })
+
+            local cwd = vim.fn.getcwd()
+            local encoded = cwd:gsub(":", "%%"):gsub("/", "%%")
+            local session_path = vim.fn.stdpath("state") .. "/sessions/" .. encoded .. ".vim"
+
+            if vim.fn.filereadable(session_path) == 1 then
+                require("persistence").load()
+            else
+                vim.notify("No session for this directory. Opening session picker...", vim.log.levels.INFO)
+                require("persistence").select()
+            end
+        end, {})
+
         dashboard.section.buttons.val = {
             dashboard.button("n", "  New File", ":ene <BAR> startinsert <CR>"),
-            dashboard.button("s", "♻️ Restore Session", function()
-                require("lazy").load({ plugins = { "persistence.nvim" } })
-
-                local cwd = vim.fn.getcwd()
-                local encoded = cwd:gsub(":", "%%")
-                    :gsub("/", "%%")
-                local session_path = vim.fn.stdpath("state") .. "/sessions/" .. encoded .. ".vim"
-
-                if vim.fn.filereadable(session_path) == 1 then
-                    require("persistence").load()
-                else
-                    vim.notify("No session for this directory. Opening session picker...", vim.log.levels.INFO)
-                    require("persistence").select()
-                end
-            end),
+            dashboard.button("s", "♻️ Restore Session", ":AlphaRestoreSession<CR>"),
             dashboard.button("r", "  Recent Files", ":Telescope oldfiles<CR>"),
             dashboard.button("f", "  Find File", ":Telescope find_files<CR>"),
             dashboard.button("g", "  Grep Text", ":Telescope live_grep<CR>"),
