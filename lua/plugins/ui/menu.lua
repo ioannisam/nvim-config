@@ -20,9 +20,14 @@ return {
                 return menu_name
             end
 
-            vim.keymap.set({ "n","v" }, "<RightMouse>", function()
+            vim.keymap.set({ "n", "v" }, "<RightMouse>", function()
+                local pos = vim.fn.getmousepos()
+                if pos.screenrow == 1 then
+                    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<RightMouse>", true, false, true), "n", false)
+                    return
+                end
+
                 require("menu.utils").delete_old_menus()
-                vim.cmd.exec('"normal! \\<RightMouse>"')
                 require("menu").open(get_contextual_menu(), { mouse = true })
             end, { desc = "Open contextual menu (mouse)" })
 
