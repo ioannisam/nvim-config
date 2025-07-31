@@ -75,9 +75,7 @@ return {
     },
     config = function(_, opts)
         require("todo-comments").setup(opts)
-        vim.keymap.set("n", "<leader>cl", "<cmd>TodoLocList<CR>", { desc = "Todo: Location List" })
         vim.keymap.set("n", "<leader>cq", "<cmd>TodoQuickFix<CR>", { desc = "Todo: Quickfix List" })
-        vim.keymap.set("n", "<leader>ct", "<cmd>TodoTelescope<CR>", { desc = "Todo: Telescope Search" })
 
         vim.api.nvim_create_autocmd("FileType", {
             pattern = "qf",

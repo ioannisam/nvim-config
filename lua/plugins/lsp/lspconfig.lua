@@ -102,8 +102,6 @@ return {
                 })
             end
 
-            vim.keymap.set("n", "<leader>xx", vim.diagnostic.setqflist)
-            vim.keymap.set("n", "<leader>xX", vim.diagnostic.setloclist)
             vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float)
             vim.keymap.set("n", "pd", vim.diagnostic.goto_prev)
             vim.keymap.set("n", "nd", vim.diagnostic.goto_next)

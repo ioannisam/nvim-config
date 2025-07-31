@@ -1,39 +1,27 @@
--- TODO: sort out the keymaps
-
 return {
     "folke/trouble.nvim",
-    opts = {},
+    dependencies = { "rcarriga/nvim-notify" },
+    opts = {
+        height = 10,
+        position = "bottom",
+    },
+    lazy = false,
     cmd = "Trouble",
     keys = {
         {
-            "<leader>xX",
-            "<cmd>Trouble diagnostics toggle<cr>",
+            "<leader>xD",
+            "<cmd>Trouble diagnostics toggle focus=true<cr>",
             desc = "Diagnostics (Trouble)",
         },
         {
-            "<leader>xx",
-            "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
+            "<leader>xd",
+            "<cmd>Trouble diagnostics toggle filter.buf=0 focus=true<cr>",
             desc = "Buffer Diagnostics (Trouble)",
         },
         {
-            "<leader>cs",
+            "<leader>xs",
             "<cmd>Trouble symbols toggle focus=false<cr>",
             desc = "Symbols (Trouble)",
-        },
-        {
-            "<leader>cl",
-            "<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
-            desc = "LSP Definitions / references / ... (Trouble)",
-        },
-        {
-            "<leader>xl",
-            "<cmd>Trouble loclist toggle<cr>",
-            desc = "Location List (Trouble)",
-        },
-        {
-            "<leader>xq",
-            "<cmd>Trouble qflist toggle<cr>",
-            desc = "Quickfix List (Trouble)",
         },
     },
 }
