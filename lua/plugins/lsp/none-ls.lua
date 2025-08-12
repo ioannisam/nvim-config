@@ -5,81 +5,93 @@ return {
         config = function()
             require("mason-null-ls").setup({
                 ensure_installed = {
+                    -- Lua
                     "stylua",
+                    "selene",
+
+                    -- Shell
+                    -- "shellharden",
+                    "shfmt",
+
+                    -- C / C++
                     "clang-format",
                     "cpplint",
-                    "shellcheck",
-                    "shfmt",
-                    "latexindent",
-                    "markdownlint",
-                    "prettier",
+
+                    -- Python
                     "black",
                     "flake8",
                     "mypy",
+
+                    -- LaTeX
+
+                    -- Markdown / Writing
+                    "textlint",
+                    "markdownlint",
+                    "proselint",
+                    "write-good",
+                    "codespell",
+
+                    -- Git
+                    "commitlint",
+                    "gitlint",
+
+                    -- Docker
+                    "hadolint",
                 },
-                automatic_installation = true,
+                automatic_installation = false,
             })
         end,
     },
     {
         "nvimtools/none-ls.nvim",
+        dependencies = {
+            "nvim-lua/plenary.nvim",
+            "nvimtools/none-ls-extras.nvim",
+        },
         config = function()
             local null_ls = require("null-ls")
-
-            local formatting = null_ls.builtins.formatting
-            local diagnostics = null_ls.builtins.diagnostics
-
-            local on_attach = function(client, bufnr)
-                local bufmap = function(mode, lhs, rhs)
-                    vim.keymap.set(mode, lhs, rhs, { buffer = bufnr })
-                end
-
-                bufmap("n", "gd", vim.lsp.buf.definition)
-                bufmap("n", "H", vim.lsp.buf.hover) -- find new keymap for H
-                bufmap("n", "<leader>rn", vim.lsp.buf.rename)
-                bufmap("n", "<leader>ca", vim.lsp.buf.code_action)
-                bufmap("n", "gr", vim.lsp.buf.references)
-
-                bufmap("n", "<leader>lf", function()
-                    vim.lsp.buf.format({
-                        async = true,
-                        bufnr = bufnr,
-                    })
-                end)
-
-                vim.diagnostic.config({
-                    update_in_insert = false,
-                })
-            end
-
             null_ls.setup({
                 sources = {
+
                     -- Lua
-                    formatting.stylua,
+                    null_ls.builtins.formatting.stylua,
+                    -- null_ls.builtins.diagnostics.selene,
 
-                    -- Bash
-                    diagnostics.shellcheck,
-                    formatting.shfmt,
+                    -- Shell
+                    -- null_ls.builtins.formatting.shellharden,
+                    null_ls.builtins.formatting.shfmt,
 
-                    -- C/C++
-                    formatting.clang_format,
-                    diagnostics.cpplint,
+                    -- C / C++
+                    null_ls.builtins.diagnostics.cppcheck,
+                    null_ls.builtins.formatting.clang_format,
+                    require("none-ls.diagnostics.cpplint"),
 
                     -- Python
-                    formatting.black,
-                    diagnostics.flake8,
-                    diagnostics.mypy,
+                    null_ls.builtins.formatting.black,
+                    require("none-ls.diagnostics.flake8"),
+                    null_ls.builtins.diagnostics.mypy,
 
                     -- LaTeX
-                    formatting.latexindent,
+                    null_ls.builtins.diagnostics.textidote,
 
                     -- Markdown
-                    diagnostics.markdownlint,
-                    formatting.prettier.with({
-                        filetypes = { "markdown", "json", "yaml" },
-                    }),
+                    null_ls.builtins.formatting.textlint,
+                    null_ls.builtins.diagnostics.markdownlint,
+                    null_ls.builtins.code_actions.proselint,
+                    null_ls.builtins.diagnostics.write_good,
+                    null_ls.builtins.diagnostics.codespell,
+                    null_ls.builtins.completion.spell,
+                    null_ls.builtins.hover.dictionary,
+                    null_ls.builtins.hover.printenv,
+
+                    -- Git
+                    null_ls.builtins.code_actions.gitsigns,
+                    null_ls.builtins.diagnostics.commitlint,
+                    null_ls.builtins.diagnostics.gitlint,
+
+                    -- Docker
+                    null_ls.builtins.diagnostics.hadolint,
                 },
-                on_attach = on_attach,
             })
         end,
     },

@@ -6,7 +6,7 @@ return {
                 "vimls",
                 "lua_ls",
                 "bashls",
-                "rust_analyzer",
+                -- "rust_analyzer",
                 "clangd",
                 "pyright",
                 "texlab",
@@ -37,7 +37,7 @@ return {
                 end
 
                 bufmap("n", "gd", vim.lsp.buf.definition)
-                bufmap("n", "H", vim.lsp.buf.hover) -- find a new key for H
+                bufmap("n", "qi", vim.lsp.buf.hover)
                 bufmap("n", "<leader>rn", vim.lsp.buf.rename)
                 bufmap("n", "<leader>ca", vim.lsp.buf.code_action)
                 bufmap("n", "gr", vim.lsp.buf.references)
@@ -49,7 +49,6 @@ return {
                     })
                 end)
 
-
                 vim.diagnostic.config({
                     update_in_insert = false,
                 })
@@ -57,11 +56,17 @@ return {
 
             local servers = {
                 vimls = {},
+
                 lua_ls = {
                     settings = {
                         Lua = {
-                            diagnostics = { globals = { "vim" } },
-                            workspace = { checkThirdParty = false },
+                            diagnostics = {
+                                globals = { "vim" },
+                            },
+                            workspace = {
+                                checkThirdParty = false,
+                                library = vim.api.nvim_get_runtime_file("", true),
+                            },
                         },
                     },
                 },
