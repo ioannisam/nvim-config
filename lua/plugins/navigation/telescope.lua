@@ -28,22 +28,26 @@ return {
             if not vim.tbl_isempty(selections) then
                 local found = false
                 for _, entry in ipairs(selections) do
-                    table.insert(selected_files, entry.value)
-                    if entry.value == current_entry.value then
+                    local file = entry.filename or entry.value
+                    table.insert(selected_files, { file = file, lnum = entry.lnum, col = entry.col })
+                    if file == (current_entry.filename or current_entry.value) then
                         found = true
                     end
                 end
-                -- Add current if not already selected
                 if not found then
-                    table.insert(selected_files, current_entry.value)
+                    local file = current_entry.filename or current_entry.value
+                    table.insert(selected_files, { file = file, lnum = current_entry.lnum, col = current_entry.col })
                 end
             else
-                table.insert(selected_files, current_entry.value)
+                local file = current_entry.filename or current_entry.value
+                table.insert(selected_files, { file = file, lnum = current_entry.lnum, col = current_entry.col })
             end
 
-            -- Open all selected
-            for _, file in ipairs(selected_files) do
-                vim.cmd("edit " .. file)
+            for _, entry in ipairs(selected_files) do
+                vim.cmd("edit " .. entry.file)
+                if entry.lnum then
+                    vim.api.nvim_win_set_cursor(0, { entry.lnum, entry.col or 0 })
+                end
             end
         end
 
