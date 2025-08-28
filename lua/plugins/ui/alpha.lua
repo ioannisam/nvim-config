@@ -34,15 +34,23 @@ return {
             local encoded = cwd:gsub(":", "%%"):gsub("/", "%%")
             local session_path = vim.fn.stdpath("state") .. "/sessions/" .. encoded .. ".vim"
 
-            if vim.fn.filereadable(session_path) == 1 then
+            if vim.fn.filereadable(session_path) == 1 and vim.fn.getfsize(session_path) > 0 then
                 require("persistence").load()
+                vim.notify("Restored session: " .. cwd, vim.log.levels.INFO)
             else
-                vim.notify("No session for this directory. Opening session picker...", vim.log.levels.INFO)
-                require("persistence").select()
+                local session_dir = vim.fn.stdpath("state") .. "/sessions/"
+                local sessions = vim.fn.globpath(session_dir, "*.vim", false, true)
+                if #sessions == 0 then
+                    vim.notify("No sessions found!", vim.log.levels.INFO)
+                else
+                    vim.notify("No session for this directory. Opening session picker...", vim.log.levels.INFO)
+                    require("persistence").select()
+                end
             end
         end, {})
+
         dashboard.section.buttons.val = {
-            
+
             dashboard.button("n", "  𝙽̲ew File", ":AlphaNewFile<CR>"),
             dashboard.button("s", "♻️ 𝚂̲ession Restore", ":AlphaRestoreSession<CR>"),
             dashboard.button("r", "  𝚁̲ecent Files", ":Telescope oldfiles<CR>"),
