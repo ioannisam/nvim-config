@@ -80,12 +80,10 @@ return {
                         ["<esc>"] = actions.close,
                         ["<Tab>"] = actions.toggle_selection + actions.move_selection_next,
                         ["<S-Tab>"] = actions.toggle_selection + actions.move_selection_previous,
-                        ["<CR>"] = open_selected_or_current,
                     },
                     n = {
                         ["<Tab>"] = actions.toggle_selection + actions.move_selection_next,
                         ["<S-Tab>"] = actions.toggle_selection + actions.move_selection_previous,
-                        ["<CR>"] = open_selected_or_current,
                     },
                 },
             },
@@ -98,6 +96,10 @@ return {
             },
             pickers = {
                 find_files = {
+                    mappings = {
+                        i = { ["<CR>"] = open_selected_or_current },
+                        n = { ["<CR>"] = open_selected_or_current },
+                    },
                     layout_strategy = "horizontal",
                     previewer = true,
                     hidden = false,
@@ -108,6 +110,10 @@ return {
                     find_command = nil,
                 },
                 live_grep = {
+                    mappings = {
+                        i = { ["<CR>"] = open_selected_or_current },
+                        n = { ["<CR>"] = open_selected_or_current },
+                    },
                     layout_strategy = "horizontal",
                     previewer = true,
                     additional_args = nil,
