@@ -38,7 +38,7 @@ return {
 
             source_selector = {
                 winbar = true,
-                statusline = false
+                statusline = false,
             },
 
             default_component_configs = {
@@ -256,6 +256,20 @@ return {
                         if type(args) == "table" and args.source then
                             last_neotree_source = args.source
                         end
+
+                        local win = vim.api.nvim_get_current_win()
+                        local buf = vim.api.nvim_win_get_buf(win)
+                        local function clear_columns()
+                            if not vim.api.nvim_win_is_valid(win) then return end
+                            pcall(vim.api.nvim_win_set_option, win, "statuscolumn", "")
+                            pcall(vim.api.nvim_win_set_option, win, "foldcolumn", "0")
+                            pcall(vim.api.nvim_win_set_option, win, "signcolumn", "no")
+
+                            local ok, gs = pcall(require, "gitsigns")
+                            if ok then pcall(gs.detach, buf) end
+                        end
+
+                        vim.defer_fn(clear_columns, 20)
                     end,
                 },
                 {
