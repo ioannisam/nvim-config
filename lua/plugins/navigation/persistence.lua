@@ -26,6 +26,15 @@ return {
             return buflisted and buftype == ""
         end
 
+        local function has_real_buffers()
+            for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                if is_real_file(buf) then
+                    return true
+                end
+            end
+            return false
+        end
+
         vim.api.nvim_create_autocmd("User", {
             pattern = "PersistenceSavePre",
             callback = function()
@@ -53,6 +62,15 @@ return {
                     end
                 end
                 vim.g._persistence_unlisted_restore = nil
+
+                local session_dir = opts.dir
+                local cwd = vim.fn.getcwd()
+                local encoded = cwd:gsub(":", "%%"):gsub("/", "%%")
+                local session_file = session_dir .. encoded .. ".vim"
+
+                if vim.fn.filereadable(session_file) == 1 and not has_real_buffers() then
+                    vim.fn.delete(session_file)
+                end
             end,
         })
 
