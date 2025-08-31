@@ -11,10 +11,19 @@ return {
         vim.opt.sessionoptions = opts.options
 
         local function is_real_file(buf)
-            return vim.api.nvim_buf_is_loaded(buf)
-                and vim.bo[buf].buflisted
-                and vim.bo[buf].buftype == ""
-                and vim.api.nvim_buf_get_name(buf) ~= ""
+            if not vim.api.nvim_buf_is_valid(buf) then
+                return false
+            end
+            local name = vim.api.nvim_buf_get_name(buf)
+            if name == "" then
+                return false
+            end
+            local ok, buftype = pcall(vim.api.nvim_buf_get_option, buf, "buftype")
+            local ok2, buflisted = pcall(vim.api.nvim_buf_get_option, buf, "buflisted")
+            if not ok or not ok2 then
+                return false
+            end
+            return buflisted and buftype == ""
         end
 
         vim.api.nvim_create_autocmd("User", {
@@ -23,13 +32,10 @@ return {
                 local unlisted = {}
                 for _, buf in ipairs(vim.api.nvim_list_bufs()) do
                     if not is_real_file(buf) then
-                        local ft = vim.bo[buf].filetype
+                        local ft = (pcall(vim.api.nvim_buf_get_option, buf, "filetype") and vim.bo[buf].filetype) or ""
                         local name = vim.api.nvim_buf_get_name(buf)
                         if ft == "undotree" or name:match("__Undotree__") or name:match("^undotree_") then
                             pcall(vim.api.nvim_buf_delete, buf, { force = true })
-                        elseif vim.bo[buf].buflisted then
-                            vim.bo[buf].buflisted = false
-                            table.insert(unlisted, buf)
                         end
                     end
                 end
