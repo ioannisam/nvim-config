@@ -26,38 +26,46 @@ return {
         vim.api.nvim_set_hl(0, "QFIconDebug", { fg = palette.teal })
         vim.api.nvim_set_hl(0, "QFIconTrace", { fg = palette.mauve })
 
+        -- explicit header highlight: make the header consistently the main text color
+        vim.api.nvim_set_hl(0, "QFHeader", { fg = palette.text, bold = true })
+
         vim.cmd([[
             function! SetQFSyntax()
                 syntax clear
-                
-                syntax match qfTime /^\S\+/
+
+                " Match the header region first; use a region so we can control contained matches
+                syntax region qfHeader start=/^/ end=/▶/ contains=qfTime,qfIconError,qfIconWarn,qfIconInfo,qfIconDebug,qfIconTrace,qfError,qfWarn,qfInfo,qfDebug,qfTrace
+
+                " Match a time token only when contained in the region (prevents matching 'Notifications')
+                syntax match qfTime /^\d\{2}:\d\{2}/ contained
                 highlight link qfTime QFTime
-                
+
                 syntax match qfError /ERROR/ contained
                 syntax match qfWarn /WARN/ contained
                 syntax match qfInfo /INFO/ contained
                 syntax match qfDebug /DEBUG/ contained
                 syntax match qfTrace /TRACE/ contained
-                
+
                 syntax match qfIconError // contained
                 syntax match qfIconWarn // contained
                 syntax match qfIconInfo // contained
                 syntax match qfIconDebug // contained
                 syntax match qfIconTrace /✎/ contained
-                
-                syntax region qfHeader start=/^/ end=/▶/ contains=qfTime,qfIconError,qfIconWarn,qfIconInfo,qfIconDebug,qfIconTrace,qfError,qfWarn,qfInfo,qfDebug,qfTrace
-                
+
                 highlight link qfError QFError
                 highlight link qfWarn QFWarn
                 highlight link qfInfo QFInfo
                 highlight link qfDebug QFDebug
                 highlight link qfTrace QFTrace
-                
+
                 highlight link qfIconError QFIconError
                 highlight link qfIconWarn QFIconWarn
                 highlight link qfIconInfo QFIconInfo
                 highlight link qfIconDebug QFIconDebug
                 highlight link qfIconTrace QFIconTrace
+
+                " link header region to the header highlight we set from Lua
+                highlight link qfHeader QFHeader
             endfunction
         ]])
 
