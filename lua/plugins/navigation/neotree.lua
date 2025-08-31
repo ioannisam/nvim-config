@@ -28,6 +28,12 @@ return {
             end)
         end
 
+        local last_neotree_source = "filesystem"
+        local function toggle_last_neotree()
+            local src = last_neotree_source or "filesystem"
+            require("neo-tree.command").execute({ toggle = true, source = src })
+        end
+
         require("neo-tree").setup({
 
             source_selector = {
@@ -245,6 +251,14 @@ return {
 
             event_handlers = {
                 {
+                    event = "neo_tree_window_after_open",
+                    handler = function(args)
+                        if type(args) == "table" and args.source then
+                            last_neotree_source = args.source
+                        end
+                    end,
+                },
+                {
                     event = "file_added",
                     handler = function(filepath)
                         vim.notify("File added: " .. relative_path(filepath), vim.log.levels.INFO)
@@ -271,7 +285,7 @@ return {
             }
         })
 
-        vim.keymap.set('n', '<leader>n', ':Neotree toggle<CR>', { noremap = true, silent = true })
+        vim.keymap.set('n', '<leader>n', toggle_last_neotree, { noremap = true, silent = true })
         vim.keymap.set('n', '<leader>w', '<C-w>w', { noremap = true, silent = true })
         vim.diagnostic.config({
             signs = {
