@@ -90,6 +90,7 @@ return {
             end
 
             local t_new, _ = make_term("horizontal")
+            vim.b[t_new.bufnr].bufferline_exclude = true
             t_new:toggle()
         end, { desc = "New horizontal terminal", noremap = true, silent = true })
 

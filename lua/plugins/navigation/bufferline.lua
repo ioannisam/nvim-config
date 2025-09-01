@@ -121,11 +121,70 @@ return {
             },
         })
 
-        for i = 1, 9 do
-            vim.keymap.set("n", tostring(i), function()
-                pcall(require("bufferline").go_to_buffer, i, true)
-            end, { noremap = true, silent = true, desc = "Go to buffer " .. i })
+        local function is_excluded(bufnr)
+            if not (vim.api.nvim_buf_is_valid(bufnr) and vim.api.nvim_buf_is_loaded(bufnr)) then
+                return true, "invalid"
+            end
+
+            local buftype = vim.bo[bufnr].buftype
+            local filetype = vim.bo[bufnr].filetype
+            local name = vim.api.nvim_buf_get_name(bufnr)
+            local wtype = vim.fn.win_gettype()
+
+            local excluded_filetypes = {
+                "neo-tree", "NvimTree",
+                "undotree",
+                "spectre", "spectre_panel", "TelescopePrompt", "TelescopeResults",
+                "dap-repl",
+                "qf", "Trouble", "neotest-summary", "Outline",
+                "help", "man", "lspinfo",
+                "gitcommit", "alpha", "noice", "copilot",
+                "lazy", "mason",
+                "fugitive",
+            }
+
+            if buftype ~= "" or not vim.bo[bufnr].buflisted then
+                return true, "special buftype"
+            end
+            if filetype and vim.tbl_contains(excluded_filetypes, filetype) then
+                return true, "excluded filetype: " .. filetype
+            end
+            if wtype ~= "" and wtype ~= "normal" then
+                return true, "special window type"
+            end
+            if name == "" and (not filetype or filetype == "") then
+                return true, "unnamed"
+            end
+            if vim.b[bufnr].bufferline_exclude then
+                return true, "explicitly excluded"
+            end
+
+            return false
         end
+
+        vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter", "BufWinEnter" }, {
+            callback = function()
+                for i = 1, 9 do
+                    vim.keymap.set("n", tostring(i), function()
+                        local bufnr = vim.api.nvim_get_current_buf()
+                        local excluded, _ = is_excluded(bufnr)
+                        if excluded then
+                            -- jump to first "normal" window with a non-excluded buffer
+                            for _, win in ipairs(vim.api.nvim_list_wins()) do
+                                local b = vim.api.nvim_win_get_buf(win)
+                                local exc, _ = is_excluded(b)
+                                if not exc then
+                                    vim.api.nvim_set_current_win(win)
+                                    break
+                                end
+                            end
+                        end
+
+                        pcall(require("bufferline").go_to_buffer, i, true)
+                    end, { buffer = bufnr, noremap = true, silent = true })
+                end
+            end,
+        })
 
         vim.keymap.set("n", "<leader>bn", "<Cmd>BufferLineCycleNext<CR>", {
             noremap = true,
@@ -158,9 +217,13 @@ return {
 
         vim.keymap.set("n", "<leader>bd", function()
             local bufnum = vim.api.nvim_get_current_buf()
-            if vim.api.nvim_buf_is_valid(bufnum) then
-                require("bufdelete").bufdelete(bufnum, true)
+            local excluded, reason = is_excluded(bufnum)
+            if excluded then
+                vim.notify("Cannot delete this buffer (" .. reason .. ")", vim.log.levels.WARN)
+                return
             end
-        end, { noremap = true, silent = true, desc = "Delete current buffer (if not pinned)" })
+
+            require("bufdelete").bufdelete(bufnum, true)
+        end, { noremap = true, silent = true, desc = "Delete current buffer (if not pinned/excluded)" })
     end,
 }
