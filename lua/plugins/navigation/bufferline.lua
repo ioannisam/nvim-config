@@ -157,9 +157,6 @@ return {
             if wtype ~= "" and wtype ~= "normal" then
                 return true, "special window type"
             end
-            if name == "" and (not filetype or filetype == "") then
-                return true, "unnamed"
-            end
             if vim.b[bufnr].bufferline_exclude then
                 return true, "explicitly excluded"
             end
@@ -221,6 +218,17 @@ return {
                 return
             end
 
+            if vim.bo[bufnum].modified then
+                local choice = vim.fn.confirm(
+                    "Buffer has unsaved changes. Delete anyway?",
+                    "&Yes\n&No",
+                    2
+                )
+                if choice ~= 1 then
+                    vim.notify("Buffer deletion cancelled", vim.log.levels.INFO)
+                    return
+                end
+            end
             require("bufdelete").bufdelete(bufnum, true)
             vim.notify("Buffer deleted", vim.log.levels.INFO)
         end, { noremap = true, silent = true, desc = "Delete current buffer (native terminal allowed)" })
@@ -253,5 +261,22 @@ return {
             "<Cmd>BufferLineTogglePin<CR>",
             { noremap = true, silent = true, desc = "Toggle pin buffer" }
         )
+
+        local function new_file_dialog()
+            vim.ui.input({ prompt = "New file name: ", default = "untitled" }, function(input)
+                if input and input ~= "" then
+                    vim.cmd("e " .. vim.fn.fnameescape(input))
+                    vim.cmd("startinsert")
+                end
+            end)
+        end
+
+        vim.keymap.set("n", "<leader>bf", new_file_dialog, { noremap = true, silent = true, desc = "Create new file (floating)" })
+        vim.keymap.set("n", "<2-LeftMouse>", function()
+            local mp = vim.fn.getmousepos()
+            if mp.screenrow == 1 then
+                new_file_dialog()
+            end
+        end, { desc = "New buffer on double-click bufferline (centered input)" })
     end,
 }
