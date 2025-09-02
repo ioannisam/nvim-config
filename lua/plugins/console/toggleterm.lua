@@ -90,8 +90,13 @@ return {
             end
 
             local t_new, _ = make_term("horizontal")
-            vim.b[t_new.bufnr].bufferline_exclude = true
             t_new:toggle()
+
+            vim.defer_fn(function()
+                if t_new.bufnr and vim.api.nvim_buf_is_valid(t_new.bufnr) then
+                    vim.b[t_new.bufnr].bufferline_exclude = true
+                end
+            end, 20)
         end, { desc = "New horizontal terminal", noremap = true, silent = true })
 
         vim.keymap.set("n", "<leader>th", function()
@@ -220,7 +225,13 @@ return {
         end, { desc = "Delete terminal", noremap = true, silent = true })
 
         vim.keymap.set("n", "<leader>tt", function()
+            vim.g._creating_native_terminal = true
             vim.cmd("terminal")
+            vim.g._creating_native_terminal = false
+
+            local bufnr = vim.api.nvim_get_current_buf()
+            vim.b[bufnr].native_term = true
+
             vim.api.nvim_feedkeys("i", "n", false)
         end, { desc = "Open native terminal", noremap = true, silent = true })
 
@@ -236,6 +247,13 @@ return {
                     local win = vim.api.nvim_get_current_win()
                     vim.api.nvim_win_set_height(win, math.max(vim.api.nvim_win_get_height(win) - 2, 3))
                 end, { buffer = 0, desc = "Decrease terminal height", noremap = true, silent = true })
+            end,
+        })
+
+        vim.api.nvim_create_autocmd("TermOpen", {
+            pattern = "term://*",
+            callback = function(ev)
+                vim.keymap.set("t", "<Esc>", [[<C-\><C-n>]], { buffer = ev.buf, noremap = true, silent = true })
             end,
         })
     end,

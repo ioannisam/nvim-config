@@ -141,10 +141,15 @@ return {
                 "gitcommit", "alpha", "noice", "copilot",
                 "lazy", "mason",
                 "fugitive",
+                "notify",
             }
 
-            if buftype ~= "" or not vim.bo[bufnr].buflisted then
-                return true, "special buftype"
+            if buftype ~= "" then
+                if buftype == "terminal" and vim.b[bufnr].native_term then
+                    -- allowed: native terminal
+                else
+                    return true, "special buftype"
+                end
             end
             if filetype and vim.tbl_contains(excluded_filetypes, filetype) then
                 return true, "excluded filetype: " .. filetype
@@ -162,29 +167,50 @@ return {
             return false
         end
 
-        vim.api.nvim_create_autocmd({ "WinEnter", "BufEnter", "BufWinEnter" }, {
-            callback = function()
-                for i = 1, 9 do
-                    vim.keymap.set("n", tostring(i), function()
-                        local bufnr = vim.api.nvim_get_current_buf()
-                        local excluded, _ = is_excluded(bufnr)
-                        if excluded then
-                            -- jump to first "normal" window with a non-excluded buffer
-                            for _, win in ipairs(vim.api.nvim_list_wins()) do
-                                local b = vim.api.nvim_win_get_buf(win)
-                                local exc, _ = is_excluded(b)
-                                if not exc then
-                                    vim.api.nvim_set_current_win(win)
-                                    break
-                                end
-                            end
-                        end
+        local function goto_buffer(i)
+            pcall(vim.cmd, ("BufferLineGoToBuffer %d"):format(i))
+        end
 
-                        pcall(require("bufferline").go_to_buffer, i, true)
-                    end, { buffer = bufnr, noremap = true, silent = true })
+        for i = 1, 9 do
+            local idx = i
+            vim.keymap.set("n", tostring(idx), function()
+                local cur = vim.api.nvim_get_current_buf()
+                local excluded, _ = is_excluded(cur)
+                if excluded then
+                    -- jump to first normal window with a non-excluded buffer
+                    for _, win in ipairs(vim.api.nvim_list_wins()) do
+                        local b = vim.api.nvim_win_get_buf(win)
+                        local exc = is_excluded(b)
+                        if not exc then
+                            vim.api.nvim_set_current_win(win)
+                            break
+                        end
+                    end
                 end
-            end,
-        })
+                goto_buffer(idx)
+            end, { noremap = true, silent = true, nowait = true, desc = "Go to buffer " .. idx })
+        end
+
+        vim.keymap.set("n", "<leader>bd", function()
+            local bufnum = vim.api.nvim_get_current_buf()
+            local buftype = vim.bo[bufnum].buftype
+
+            if buftype == "terminal" then
+                if not vim.b[bufnum].native_term then
+                    vim.notify("This is a toggleterm terminal — delete with <leader>td", vim.log.levels.WARN)
+                    return
+                end
+            end
+
+            local excluded, reason = is_excluded(bufnum)
+            if excluded then
+                vim.notify("Cannot delete this buffer (" .. reason .. ")", vim.log.levels.WARN)
+                return
+            end
+
+            require("bufdelete").bufdelete(bufnum, true)
+            vim.notify("Buffer deleted", vim.log.levels.INFO)
+        end, { noremap = true, silent = true, desc = "Delete current buffer (native terminal allowed)" })
 
         vim.keymap.set("n", "<leader>bn", "<Cmd>BufferLineCycleNext<CR>", {
             noremap = true,
@@ -214,16 +240,5 @@ return {
             "<Cmd>BufferLineTogglePin<CR>",
             { noremap = true, silent = true, desc = "Toggle pin buffer" }
         )
-
-        vim.keymap.set("n", "<leader>bd", function()
-            local bufnum = vim.api.nvim_get_current_buf()
-            local excluded, reason = is_excluded(bufnum)
-            if excluded then
-                vim.notify("Cannot delete this buffer (" .. reason .. ")", vim.log.levels.WARN)
-                return
-            end
-
-            require("bufdelete").bufdelete(bufnum, true)
-        end, { noremap = true, silent = true, desc = "Delete current buffer (if not pinned/excluded)" })
     end,
 }
