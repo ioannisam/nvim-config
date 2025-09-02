@@ -1,5 +1,4 @@
 -- TODO: 
---     Pinned buffer deletion
 --     Hover 'x' functionality
 --     Middle mouse
 
@@ -81,10 +80,11 @@ return {
                         require("bufferline.groups").builtin.pinned:with({
                             icon = "󰐃",
                             highlight = {
-                                fg = "#fab387",
+                                fg = "#8aadf4",
+                                -- fg = "#fab387",
                                 -- fg = "#cba6f7",
                                 bold = true,
-                                underline = true,
+                                underline = false,
                             },
                             priority = 1,
                         }),
@@ -167,6 +167,14 @@ return {
             return false
         end
 
+        local function buffer_is_pinned(bufnr)
+            local ok, groups = pcall(require, "bufferline.groups")
+            if ok and type(groups._is_pinned) == "function" then
+                return groups._is_pinned({ id = bufnr })
+            end
+            return false
+        end
+
         local function goto_buffer(i)
             pcall(vim.cmd, ("BufferLineGoToBuffer %d"):format(i))
         end
@@ -200,6 +208,11 @@ return {
                     vim.notify("This is a toggleterm terminal — delete with <leader>td", vim.log.levels.WARN)
                     return
                 end
+            end
+
+            if buffer_is_pinned(bufnum) then
+                vim.notify("Pinned buffers cannot be deleted", vim.log.levels.WARN)
+                return
             end
 
             local excluded, reason = is_excluded(bufnum)
