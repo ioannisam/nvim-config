@@ -36,14 +36,14 @@ return {
 
             if vim.fn.filereadable(session_path) == 1 and vim.fn.getfsize(session_path) > 0 then
                 require("persistence").load()
-                vim.notify("Restored session: " .. cwd, vim.log.levels.INFO)
+                vim.notify("Restored session: " .. cwd, vim.log.levels.INFO, {title = "Alpha 󰯫"})
             else
                 local session_dir = vim.fn.stdpath("state") .. "/sessions/"
                 local sessions = vim.fn.globpath(session_dir, "*.vim", false, true)
                 if #sessions == 0 then
-                    vim.notify("No sessions found!", vim.log.levels.INFO)
+                    vim.notify("No sessions found!", vim.log.levels.INFO, { title = "Alpha 󰯫" })
                 else
-                    vim.notify("No session for this directory. Opening session picker...", vim.log.levels.INFO)
+                    vim.notify("No session for this directory. Opening session picker...", vim.log.levels.INFO, { title = "Alpha 󰯫" })
                     require("persistence").select()
                 end
             end

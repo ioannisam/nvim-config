@@ -401,7 +401,7 @@ return {
                     }
 
                     vim.notify(table.concat(help, "\n"), vim.log.levels.INFO, {
-                        title = "Notifications QF Help",
+                        title = "Notify 󰂟",
                         timeout = 10000,
                     })
                 end, { buffer = true, desc = "Show Notifications QF help" })

@@ -202,19 +202,19 @@ return {
 
             if buftype == "terminal" then
                 if not vim.b[bufnum].native_term then
-                    vim.notify("This is a toggleterm terminal — delete with <leader>td", vim.log.levels.WARN)
+                    vim.notify("This is a toggleterm terminal — delete with <leader>td", vim.log.levels.WARN, {title = "Bufferline "})
                     return
                 end
             end
 
             if buffer_is_pinned(bufnum) then
-                vim.notify("Pinned buffers cannot be deleted", vim.log.levels.WARN)
+                vim.notify("Pinned buffers cannot be deleted", vim.log.levels.WARN, {title = "Bufferline "})
                 return
             end
 
             local excluded, reason = is_excluded(bufnum)
             if excluded then
-                vim.notify("Cannot delete this buffer (" .. reason .. ")", vim.log.levels.WARN)
+                vim.notify("Cannot delete this buffer (" .. reason .. ")", vim.log.levels.WARN, {title = "Bufferline "})
                 return
             end
 
@@ -225,12 +225,12 @@ return {
                     2
                 )
                 if choice ~= 1 then
-                    vim.notify("Buffer deletion cancelled", vim.log.levels.INFO)
+                    vim.notify("Buffer deletion cancelled", vim.log.levels.INFO, {title = "Bufferline "})
                     return
                 end
             end
             require("bufdelete").bufdelete(bufnum, true)
-            vim.notify("Buffer deleted", vim.log.levels.INFO)
+            vim.notify("Buffer deleted", vim.log.levels.INFO, {title = "Bufferline "})
         end, { noremap = true, silent = true, desc = "Delete current buffer (native terminal allowed)" })
 
         vim.keymap.set("n", "<leader>bn", "<Cmd>BufferLineCycleNext<CR>", {

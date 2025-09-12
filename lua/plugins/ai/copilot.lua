@@ -19,7 +19,7 @@ return {
 
 			vim.api.nvim_create_user_command("CopilotAuth", function()
 				require("copilot").auth()
-				vim.notify("Check Neovim :messages for auth link", vim.log.levels.INFO)
+				vim.notify("Check Neovim :messages for auth link", vim.log.levels.INFO, { title = "Copilot " })
 			end, {})
 		end,
 	},

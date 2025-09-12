@@ -21,7 +21,7 @@ return {
 
 		vim.keymap.set("n", "<leader>ha", function()
 			harpoon:list():add()
-			vim.notify("Harpooned file", vim.log.levels.INFO, { title = "Harpoon" })
+			vim.notify("Harpooned file", vim.log.levels.INFO, { title = "Harpoon 󰛢" })
 		end, { desc = "Harpoon Add File" })
 		vim.keymap.set("n", "<leader>hm", function()
 			harpoon.ui:toggle_quick_menu(harpoon:list(), {
@@ -41,14 +41,14 @@ return {
 		for i = 1, 9 do
 			vim.keymap.set("n", "h" .. i, function()
 				harpoon:list():select(i)
-				vim.notify("Harpoon" .. i, vim.log.levels.INFO, { title = "Harpoon" })
+				vim.notify("Harpoon" .. i, vim.log.levels.INFO, { title = "Harpoon 󰛢" })
 			end, { desc = "Harpoon go to file " .. i })
 		end
 
 		for i = 1, 9 do
 			vim.keymap.set("n", "<leader>hd" .. i, function()
 				harpoon:list():remove_at(i)
-				vim.notify("Deleted harpoon", vim.log.levels.INFO, { title = "Harpoon" })
+				vim.notify("Deleted harpoon", vim.log.levels.INFO, { title = "Harpoon 󰛢" })
 			end, { desc = "Harpoon remove file " .. i })
 		end
 	end,

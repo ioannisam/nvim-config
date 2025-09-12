@@ -67,7 +67,7 @@ return {
                 if terminals[term.id] then
                     cleanup(term.id)
                     table.insert(freed_ids, term.id)
-                    vim.notify("Terminal " .. term.id .. " exited", vim.log.levels.INFO)
+                    vim.notify("Terminal " .. term.id .. " exited", vim.log.levels.INFO, { title = "ToggleTerm  " })
                 end
             end,
             close_on_exit = true,
@@ -108,7 +108,7 @@ return {
             end
 
             if #h_terms == 0 then
-                vim.notify("No horizontal terminals exist", vim.log.levels.INFO)
+                vim.notify("No horizontal terminals exist", vim.log.levels.INFO, { title = "ToggleTerm  " })
                 return
             end
 
@@ -139,7 +139,7 @@ return {
                             return
                         end
                         term_names[id] = input
-                        vim.notify("Renamed to '" .. input .. "'", vim.log.levels.INFO)
+                        vim.notify("Renamed to '" .. input .. "'", vim.log.levels.INFO, { title = "ToggleTerm  " })
                         refresh_winbar(t)
                     end)
                     return
@@ -157,7 +157,7 @@ return {
             end
 
             if #items == 0 then
-                vim.notify("No terminals to rename", vim.log.levels.INFO)
+                vim.notify("No terminals to rename", vim.log.levels.INFO, { title = "ToggleTerm  " })
                 return
             end
 
@@ -175,7 +175,7 @@ return {
                         return
                     end
                     term_names[choice.id] = input
-                    vim.notify("Renamed to '" .. input .. "'", vim.log.levels.INFO)
+                    vim.notify("Renamed to '" .. input .. "'", vim.log.levels.INFO, { title = "ToggleTerm  " })
                     refresh_winbar(choice.term)
                 end)
             end)
@@ -188,7 +188,7 @@ return {
                     t:shutdown()
                     cleanup(id)
                     table.insert(freed_ids, id)
-                    vim.notify("Deleted terminal " .. id, vim.log.levels.INFO)
+                    vim.notify("Deleted terminal " .. id, vim.log.levels.INFO, { title = "ToggleTerm  " })
                     return
                 end
             end
@@ -204,7 +204,7 @@ return {
             end
 
             if #items == 0 then
-                vim.notify("No terminals to delete", vim.log.levels.INFO)
+                vim.notify("No terminals to delete", vim.log.levels.INFO, { title = "ToggleTerm  " })
                 return
             end
 
@@ -220,7 +220,7 @@ return {
                 choice.term:shutdown()
                 cleanup(choice.id)
                 table.insert(freed_ids, choice.id)
-                vim.notify("Deleted terminal " .. choice.id, vim.log.levels.INFO)
+                vim.notify("Deleted terminal " .. choice.id, vim.log.levels.INFO, { title = "ToggleTerm  " })
             end)
         end, { desc = "Delete terminal", noremap = true, silent = true })
 

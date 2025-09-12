@@ -78,7 +78,7 @@ return {
             local session_dir = opts.dir
             local sessions = vim.fn.globpath(session_dir, "*.vim", false, true)
             if #sessions == 0 then
-                vim.notify("No sessions left to clear!", vim.log.levels.INFO)
+                vim.notify("No sessions left to clear!", vim.log.levels.INFO, { title = "Persistence " })
                 return
             end
             vim.ui.select(sessions, {
@@ -86,7 +86,7 @@ return {
                 format_item = function(item) return vim.fn.fnamemodify(item, ":t") end,
             }, function(choice)
                 if choice and vim.fn.delete(choice) == 0 then
-                    vim.notify("Deleted session: " .. vim.fn.fnamemodify(choice, ":t"), vim.log.levels.INFO)
+                    vim.notify("Deleted session: " .. vim.fn.fnamemodify(choice, ":t"), vim.log.levels.INFO, { title = "Persistence " })
                 end
             end)
         end, { desc = "Clear multiple sessions interactively" })

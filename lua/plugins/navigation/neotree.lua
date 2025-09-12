@@ -23,7 +23,7 @@ return {
                 if confirmed then
                     on_confirmed()
                 else
-                    vim.notify("Canceled: " .. message, vim.log.levels.WARN)
+                    vim.notify("Canceled: " .. message, vim.log.levels.WARN, {title = "Neo-tree 󰹩"})
                 end
             end)
         end
@@ -197,9 +197,9 @@ return {
                                     if bufnr ~= -1 then
                                         pcall(vim.cmd, "silent checktime " .. bufnr)
                                     end
-                                    vim.notify("File reverted: " .. relative_path(path), vim.log.levels.INFO)
+                                    vim.notify("File reverted: " .. relative_path(path), vim.log.levels.INFO, {title = "Neo-tree 󰹩"})
                                 else
-                                    vim.notify("Git restore failed: " .. out, vim.log.levels.ERROR)
+                                    vim.notify("Git restore failed: " .. out, vim.log.levels.ERROR, {title = "Neo-tree 󰹩"})
                                 end
                                 require("neo-tree.sources.git_status").refresh(state)
                             end)
@@ -223,9 +223,9 @@ return {
                                             pcall(vim.cmd, "silent checktime " .. bufnr)
                                         end
                                     end
-                                    vim.notify("All files reverted and buffers reloaded.", vim.log.levels.INFO)
+                                    vim.notify("All files reverted and buffers reloaded.", vim.log.levels.INFO, {title = "Neo-tree 󰹩"})
                                 else
-                                    vim.notify("Git restore failed: " .. out, vim.log.levels.ERROR)
+                                    vim.notify("Git restore failed: " .. out, vim.log.levels.ERROR, {title = "Neo-tree 󰹩"})
                                 end
                                 require("neo-tree.sources.git_status").refresh(state)
                             end)
@@ -260,25 +260,25 @@ return {
                 {
                     event = "file_added",
                     handler = function(filepath)
-                        vim.notify("File added: " .. relative_path(filepath), vim.log.levels.INFO)
+                        vim.notify("File added: " .. relative_path(filepath), vim.log.levels.INFO, {title = "Neo-tree 󰹩"})
                     end,
                 },
                 {
                     event = "file_deleted",
                     handler = function(filepath)
-                        vim.notify("File deleted: " .. relative_path(filepath), vim.log.levels.WARN)
+                        vim.notify("File deleted: " .. relative_path(filepath), vim.log.levels.WARN, {title = "Neo-tree 󰹩"})
                     end,
                 },
                 {
                     event = "file_moved",
                     handler = function(info)
-                        vim.notify("File moved: " .. relative_path(info.source) .. " → " .. relative_path(info.destination), vim.log.levels.INFO)
+                        vim.notify("File moved: " .. relative_path(info.source) .. " → " .. relative_path(info.destination), vim.log.levels.INFO, {title = "Neo-tree 󰹩"})
                     end,
                 },
                 {
                     event = "file_renamed",
                     handler = function(info)
-                        vim.notify("File renamed: " .. relative_path(info.source) .. " → " .. relative_path(info.destination), vim.log.levels.INFO)
+                        vim.notify("File renamed: " .. relative_path(info.source) .. " → " .. relative_path(info.destination), vim.log.levels.INFO, {title = "Neo-tree 󰹩"})
                     end,
                 },
             }
