@@ -34,6 +34,83 @@ return {
             require("neo-tree.command").execute({ toggle = true, source = src })
         end
 
+        local function delete_buffer(state)
+            local node = state.tree:get_node()
+            if not node then return end
+            local bufnr = vim.fn.bufnr(node.path)
+            if bufnr == -1 then return end
+
+            local function is_real(b)
+                if not vim.api.nvim_buf_is_valid(b) then return false end
+                if not vim.bo[b].buflisted then return false end
+                local name = vim.api.nvim_buf_get_name(b)
+                if name == "" then return false end
+                local ft = vim.api.nvim_buf_get_option(b, "filetype")
+                if ft == "alpha" or ft == "neo-tree" or ft == "NvimTree" then return false end
+                return true
+            end
+
+            local real = {}
+            for _, b in ipairs(vim.api.nvim_list_bufs()) do
+                if is_real(b) then table.insert(real, b) end
+            end
+
+            local will_be_last = (#real == 1 and real[1] == bufnr)
+
+            local placeholder_win
+            local created_split = false
+            local curwin = vim.api.nvim_get_current_win()
+
+            if will_be_last then
+                for _, win in ipairs(vim.api.nvim_list_wins()) do
+                    local wb = vim.api.nvim_win_get_buf(win)
+                    local wft = vim.api.nvim_buf_get_option(wb, "filetype")
+                    if wft ~= "neo-tree" and wft ~= "alpha" then
+                        placeholder_win = win
+                        break
+                    end
+                end
+                if not placeholder_win or not vim.api.nvim_win_is_valid(placeholder_win) then
+                    vim.cmd("vsplit")
+                    placeholder_win = vim.api.nvim_get_current_win()
+                    created_split = true
+                end
+                vim.api.nvim_set_current_win(placeholder_win)
+                vim.cmd("enew")
+                vim.bo[vim.api.nvim_get_current_buf()].buflisted = true
+                vim.api.nvim_set_current_win(curwin)
+            end
+
+            if vim.api.nvim_buf_is_loaded(bufnr) then
+                vim.api.nvim_buf_delete(bufnr, { force = true })
+            else
+                pcall(vim.fn.bufdelete, bufnr, true)
+            end
+
+            if will_be_last then
+                if placeholder_win and vim.api.nvim_win_is_valid(placeholder_win) then
+                    vim.api.nvim_set_current_win(placeholder_win)
+                end
+                local ok, alpha = pcall(require, "alpha")
+                if ok and alpha.start then
+                    -- close neo-tree first
+                    require("neo-tree.command").execute({ action = "close" })
+                    -- start alpha
+                    alpha.start(true)
+                    if created_split and placeholder_win and vim.api.nvim_win_is_valid(placeholder_win) then
+                        vim.api.nvim_win_close(placeholder_win, true)
+                    end
+                else
+                    vim.notify("alpha not available; left an empty buffer open", vim.log.levels.WARN, { title = "Neo-tree 󰹩" })
+                end
+            end
+
+            local ok, manager = pcall(require, "neo-tree.sources.manager")
+            if ok then
+                manager.refresh("buffers")
+            end
+        end
+
         require("neo-tree").setup({
 
             source_selector = {
@@ -175,7 +252,7 @@ return {
                 show_unloaded = true,
                 window = {
                     mappings = {
-                        ["d"] = "buffer_delete",
+                        ["d"] = delete_buffer,
                     },
                 },
             },
