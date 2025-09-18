@@ -100,6 +100,7 @@ return {
             },
             pickers = {
                 find_files = {
+                    prompt_title = " Find Files",
                     mappings = {
                         i = { ["<CR>"] = open_selected_or_current },
                         n = { ["<CR>"] = open_selected_or_current },
@@ -114,6 +115,7 @@ return {
                     find_command = nil,
                 },
                 live_grep = {
+                    prompt_title = " Live Grep",
                     mappings = {
                         i = { ["<CR>"] = open_selected_or_current },
                         n = { ["<CR>"] = open_selected_or_current },
@@ -128,6 +130,7 @@ return {
                     only_cwd = false,
                 },
                 help_tags = {
+                    prompt_title = "󰋖 Help Tags",
                     theme = "dropdown",
                     previewer = false,
                 },
@@ -135,15 +138,9 @@ return {
         })
 
         telescope.load_extension("fzf")
-        telescope.load_extension("harpoon")
-        vim.keymap.set("n", "<leader>fm", function()
-            require("telescope").extensions.harpoon.marks()
-        end, { desc = "Find Harpoon Marks" })
-
         local builtin = require("telescope.builtin")
         vim.keymap.set("n", "<leader>ff", builtin.find_files, { desc = "Find Files" })
         vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Live Grep" })
-        vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Buffers" })
         vim.keymap.set("n", "<leader>fh", builtin.help_tags, { desc = "Help Tags" })
         vim.keymap.set(
             "n",

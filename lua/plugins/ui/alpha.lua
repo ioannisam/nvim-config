@@ -52,10 +52,10 @@ return {
         dashboard.section.buttons.val = {
 
             dashboard.button("n", "  𝙽̲ew File", ":AlphaNewFile<CR>"),
-            dashboard.button("s", "♻️ 𝚂̲ession Restore", ":AlphaRestoreSession<CR>"),
+            dashboard.button("s", "󰆓  𝚂̲ession Restore", ":AlphaRestoreSession<CR>"),
             dashboard.button("r", "  𝚁̲ecent Files", ":Telescope oldfiles<CR>"),
-            dashboard.button("f", "  𝙵̲ind File", ":Telescope find_files<CR>"),
-            dashboard.button("g", "  𝙶̲rep Text", ":Telescope live_grep<CR>"),
+            dashboard.button("f", "󰭎  𝙵̲ind File", ":Telescope find_files<CR>"),
+            dashboard.button("g", "  𝙶̲rep Text", ":Telescope live_grep<CR>"),
             dashboard.button("c", "  𝙲̲onfiguration", ":e $MYVIMRC | cd %:p:h <CR>"),
             dashboard.button("q", "  𝚀̲uit", ":qa<CR>"),
         }
