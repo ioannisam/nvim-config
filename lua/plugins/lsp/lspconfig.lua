@@ -17,16 +17,13 @@ return {
     {
         "neovim/nvim-lspconfig",
         config = function()
-            local lspconfig = require("lspconfig")
-
             local capabilities = vim.lsp.protocol.make_client_capabilities()
-            local cmp_nvim_lsp_ok, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
-            if cmp_nvim_lsp_ok then
+            local cmp_ok, cmp_nvim_lsp = pcall(require, "cmp_nvim_lsp")
+            if cmp_ok then
                 capabilities = cmp_nvim_lsp.default_capabilities()
             end
 
             local on_attach = function(client, bufnr)
-
                 local navic_ok, navic = pcall(require, "nvim-navic")
                 if navic_ok and client.server_capabilities.documentSymbolProvider then
                     navic.attach(client, bufnr)
@@ -56,7 +53,6 @@ return {
 
             local servers = {
                 vimls = {},
-
                 lua_ls = {
                     settings = {
                         Lua = {
@@ -99,12 +95,14 @@ return {
             }
 
             for server, config in pairs(servers) do
-                lspconfig[server].setup({
+                vim.lsp.config(server, {
                     capabilities = capabilities,
                     on_attach = on_attach,
                     settings = config.settings,
                     flags = flags,
+                    filetypes = config.filetypes,
                 })
+                vim.lsp.enable(server)
             end
 
             vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float)
