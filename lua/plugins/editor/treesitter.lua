@@ -7,7 +7,9 @@ return {
         {
             "windwp/nvim-ts-autotag",
             event = "InsertEnter",
-            config = true,
+            config = function()
+                require("nvim-ts-autotag").setup()
+            end,
         },
         {
             "nvim-treesitter/playground",
@@ -60,9 +62,6 @@ return {
                     },
                 },
             },
-            autotag = {
-                enable = true,
-            }
         })
     end,
 }
