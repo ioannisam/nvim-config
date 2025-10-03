@@ -23,20 +23,19 @@ return {
 
             vim.notify("Multi-cursor mode activated!", vim.log.levels.INFO, { title = "MultiCursor 󱢓" })
         end, { desc = "Activate multi-cursor at start of visual selection" })
-        
-        mc.addKeymapLayer(function(layerSet)
 
+        mc.addKeymapLayer(function(layerSet)
             layerSet({"n", "x"}, "h", mc.prevCursor)
             layerSet({"n", "x"}, "l", mc.nextCursor)
-            layerSet({"n", "x"}, "j", function() mc.lineAddCursor(1) end)
-            layerSet({"n", "x"}, "k", function() mc.lineAddCursor(-1) end)
-            layerSet({"n", "x"}, "J", function() mc.lineSkipCursor(1) end)
-            layerSet({"n", "x"}, "K", function() mc.lineSkipCursor(-1) end)
+            layerSet({"n", "x"}, "j", function() mc.lineAddCursor(1) end, { nowait = true, noremap = true, silent = true })
+            layerSet({"n", "x"}, "k", function() mc.lineAddCursor(-1) end, { nowait = true, noremap = true, silent = true })
+            layerSet({"n", "x"}, "J", function() mc.lineSkipCursor(1) end, { nowait = true, noremap = true, silent = true })
+            layerSet({"n", "x"}, "K", function() mc.lineSkipCursor(-1) end, { nowait = true, noremap = true, silent = true })
 
-            layerSet({"n", "x"}, "n", function() mc.matchAddCursor(1) end)
-            layerSet({"n", "x"}, "p", function() mc.matchAddCursor(-1) end)
-            layerSet({"n", "x"}, "s", function() mc.matchSkipCursor(1) end)
-            layerSet({"n", "x"}, "c", mc.deleteCursor)
+            layerSet({"n", "x"}, "n", function() mc.matchAddCursor(1) end, { nowait = true, noremap = true, silent = true })
+            layerSet({"n", "x"}, "p", function() mc.matchAddCursor(-1) end, { nowait = true, noremap = true, silent = true })
+            layerSet({"n", "x"}, "s", function() mc.matchSkipCursor(1) end, { nowait = true, noremap = true, silent = true })
+            layerSet({"n", "x"}, "c", mc.deleteCursor, { nowait = true, noremap = true, silent = true })
 
             layerSet({"n", "x"}, "t", function()
                 if mc.cursorsEnabled() then
@@ -44,7 +43,7 @@ return {
                 else
                     mc.enableCursors()
                 end
-            end)
+            end, { nowait = true, noremap = true, silent = true })
             layerSet("n", "<esc>", function()
                 if not mc.cursorsEnabled() then
                     mc.enableCursors()
@@ -55,7 +54,7 @@ return {
                 end
             end)
         end)
-       
+
         local hl = vim.api.nvim_set_hl
         hl(0, "MultiCursorCursor", { reverse = true })
         hl(0, "MultiCursorVisual", { link = "Visual" })
