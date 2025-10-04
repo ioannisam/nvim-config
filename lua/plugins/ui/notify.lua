@@ -13,6 +13,8 @@ return {
     "rcarriga/nvim-notify",
     lazy = false,
     config = function()
+        local details_win = nil
+        local details_buf = nil
         local notify = require("notify")
         notify.setup({
             timeout = 1500,
@@ -224,16 +226,24 @@ return {
             }
         end)()
 
+        _G.NQF = NQF
+
         vim.keymap.set("n", "<Esc>", function()
             if vim.v.hlsearch == 1 then vim.cmd("nohlsearch") end
             notify.dismiss({ silent = true, pending = true })
         end, { desc = "Esc: clear highlights and dismiss notifications" })
 
         vim.keymap.set("n", "<leader>xn", function()
-            NQF.reset_session()
-
             local notify = require("notify")
             local history = notify.history()
+
+            local NQF = _G.NQF or nil
+            if not NQF then
+                vim.notify("NQF not found", vim.log.levels.ERROR, { title = "Notify 󰂟" })
+                return
+            end
+
+            NQF.reset_session()
 
             local items = {}
             local type_map = { DEBUG = "N", INFO = "I", WARN = "W", ERROR = "E", TRACE = "N" }
@@ -283,46 +293,13 @@ return {
                 local summary = lines[1] or ""
                 local key = NQF.key_for(lvl, notif.time, summary)
                 if not NQF.dismissed[key] then
-                    local buf = vim.api.nvim_create_buf(false, true)
-                    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-
-                    for i, line in ipairs(lines) do
-                        local hl_group
-                        if lvl == "ERROR" then
-                            hl_group = "QFError"
-                        elseif lvl == "WARN" then
-                            hl_group = "QFWarn"
-                        elseif lvl == "INFO" then
-                            hl_group = "QFInfo"
-                        elseif lvl == "DEBUG" then
-                            hl_group = "QFDebug"
-                        elseif lvl == "TRACE" then
-                            hl_group = "QFTrace"
-                        end
-                        if hl_group then
-                            vim.api.nvim_buf_add_highlight(buf, -1, hl_group, i - 1, 0, -1)
-                        end
-
-                        local icons = {
-                            [""] = "QFIconError",
-                            [""] = "QFIconWarn",
-                            [""] = "QFIconInfo",
-                            [""] = "QFIconDebug",
-                            ["✎"] = "QFIconTrace",
-                        }
-                        local icon_match = line:match("^([%z\1-\127\194-\244][\128-\191]*)")
-                        if icon_match and icons[icon_match] then
-                            vim.api.nvim_buf_add_highlight(buf, -1, icons[icon_match], i - 1, 0, #icon_match)
-                        end
-                    end
-
                     table.insert(items, {
-                        bufnr = buf,
+                        bufnr = 0,
                         lnum = 1,
                         col = 1,
                         text = string.format("%s | %s %-5s ▶ %s", time, icon, lvl, summary),
                         type = qftype,
-                        user_data = { key = key, bufnr = buf, lvl = lvl, time = notif.time },
+                        user_data = { key = key, lvl = lvl, time = notif.time, lines = lines },
                     })
                 end
             end
@@ -355,8 +332,84 @@ return {
                 end)
             else
                 vim.cmd("cclose")
+                if details_win and vim.api.nvim_win_is_valid(details_win) then
+                    vim.api.nvim_win_close(details_win, true)
+                    details_win, details_buf = nil, nil
+                end
             end
         end, { desc = "Toggle Notifications History in quickfix (for bqf)" })
+
+        local function open_float(title, lines, opts)
+            opts = opts or {}
+            local width = opts.width or math.floor(vim.o.columns * 0.6)
+            local height = opts.height or math.min(#lines + 4, math.floor(vim.o.lines * 0.5))
+            local row = math.floor((vim.o.lines - height) / 2)
+            local col = math.floor((vim.o.columns - width) / 2)
+
+            local buf = vim.api.nvim_create_buf(false, true)
+            vim.bo[buf].buftype = "nofile"
+            vim.bo[buf].bufhidden = "wipe"
+            vim.bo[buf].swapfile = false
+            vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+
+            vim.api.nvim_set_option_value("modifiable", false, { buf = buf })
+            vim.api.nvim_set_option_value("readonly", true, { buf = buf })
+            vim.api.nvim_set_option_value("filetype", "notifydetails", { buf = buf })
+
+            local block_keys = { "d", "dd", "x", "p", "i", "a", "o", "O", "c", "r", "s" }
+            for _, key in ipairs(block_keys) do
+                vim.keymap.set("n", key, "<nop>", { buffer = buf, nowait = true })
+            end
+
+            local win = vim.api.nvim_open_win(buf, true, {
+                relative = "editor",
+                width = width,
+                height = height,
+                row = row,
+                col = col,
+                style = "minimal",
+                border = "rounded",
+                title = title,
+                title_pos = "center",
+            })
+
+            vim.api.nvim_set_option_value("winhighlight", "Normal:Normal,FloatBorder:FloatBorder", { win = win })
+
+            vim.keymap.set("n", "q", function()
+                if vim.api.nvim_win_is_valid(win) then
+                    vim.api.nvim_win_close(win, true)
+                end
+            end, { buffer = buf, nowait = true, desc = "Close floating window" })
+
+            vim.api.nvim_create_autocmd("WinLeave", {
+                buffer = buf,
+                once = true,
+                callback = function()
+                    if vim.api.nvim_win_is_valid(win) then
+                        vim.api.nvim_win_close(win, true)
+                    end
+                end,
+            })
+
+            if opts.refocus_win_type then
+                vim.api.nvim_create_autocmd("WinClosed", {
+                    once = true,
+                    callback = function()
+                        vim.schedule(function()
+                            for _, w in ipairs(vim.api.nvim_list_wins()) do
+                                local b = vim.api.nvim_win_get_buf(w)
+                                if vim.bo[b].buftype == opts.refocus_win_type then
+                                    vim.api.nvim_set_current_win(w)
+                                    break
+                                end
+                            end
+                        end)
+                    end,
+                })
+            end
+
+            return buf, win
+        end
 
         vim.api.nvim_create_autocmd("FileType", {
             pattern = "qf",
@@ -364,6 +417,39 @@ return {
                 local title = vim.fn.getqflist({ title = 1 }).title
                 if title ~= "Notifications" then return end
                 local opts = { buffer = args.buf, nowait = true, desc = "Notifications QF" }
+
+                vim.keymap.set("n", "<CR>", function()
+                    local items = vim.fn.getqflist()
+                    local line = vim.fn.line(".")
+                    local item = items[line]
+                    if not item or not item.user_data or not item.user_data.lines then return end
+
+                    local lines = vim.deepcopy(item.user_data.lines)
+                    table.insert(lines, "")
+                    table.insert(lines, "───────────────────────────────────────────────")
+                    table.insert(lines, "Press 'q' to close this window")
+
+                    details_buf, details_win = open_float(
+                        string.format(" Notification Details 󰂟 "),
+                        lines,
+                        { refocus_win_type = "quickfix" }
+                    )
+                    -- refocus to quickfix after closing
+                    vim.api.nvim_create_autocmd("WinClosed", {
+                        once = true,
+                        callback = function()
+                            vim.schedule(function()
+                                for _, w in ipairs(vim.api.nvim_list_wins()) do
+                                    local b = vim.api.nvim_win_get_buf(w)
+                                    if vim.bo[b].buftype == "quickfix" then
+                                        vim.api.nvim_set_current_win(w)
+                                        break
+                                    end
+                                end
+                            end)
+                        end,
+                    })
+                end, vim.tbl_extend("force", opts, { desc = "Open notification detail in floating view" }))
 
                 for _, key in ipairs({ "d", "<Delete>" }) do
                     vim.keymap.set("n", key, NQF.delete,
@@ -381,30 +467,27 @@ return {
                     vim.cmd("cclose")
                 end, opts)
 
-                vim.keymap.set("n", "<Esc>", function()
-                    if vim.v.hlsearch == 1 then vim.cmd("nohlsearch") end
-                    notify.dismiss({ silent = true, pending = true })
-                    vim.cmd("cclose")
-                end, opts)
-
                 vim.keymap.set("n", "?", function()
-                    local help = {
-                        "Notifications Quickfix Help:",
+                    local lines = {
+                        " Notifications Quickfix Help ",
+                        "───────────────────────────────",
+                        " <leader>xn → toggle Notifications history window",
+                        " <Esc>      → dismiss transient notifications",
+                        " q          → close the Notifications window",
                         " d / <Del>  → delete notification under cursor",
                         " D          → delete all notifications (keep window for undo)",
                         " u          → undo last delete",
                         " U          → undo all deletes",
-                        " <Esc>      → clear highlights + dismiss transient notifications + close",
-                        " q          → close the Notifications window",
-                        " <leader>xn → toggle Notifications history window",
                         " ?          → show this help",
+                        "",
+                        " Press 'q' to close this help ",
                     }
 
-                    vim.notify(table.concat(help, "\n"), vim.log.levels.INFO, {
-                        title = "Notify 󰂟",
-                        timeout = 10000,
+                    open_float(" Notifications Help 󰂟 ", lines, {
+                        width = math.floor(vim.o.columns * 0.5),
+                        refocus_win_type = "quickfix",
                     })
-                end, { buffer = true, desc = "Show Notifications QF help" })
+                end, { buffer = args.buf, desc = "Show Notifications QF help" })
             end,
         })
     end,

@@ -38,7 +38,7 @@ return {
                     -- Docker
                     "hadolint",
                 },
-                automatic_installation = false,
+                automatic_installation = true,
             })
         end,
     },
