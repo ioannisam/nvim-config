@@ -38,23 +38,51 @@ return {
             end
         end
 
+        local function ensure_editor_focus()
+            local layout = require("utils.layout")
+            local neotree_win = layout.get_neotree_win()
+            if neotree_win and vim.api.nvim_get_current_win() == neotree_win then
+                for _, w in ipairs(vim.api.nvim_list_wins()) do
+                    if w ~= neotree_win then
+                        vim.api.nvim_set_current_win(w)
+                        return
+                    end
+                end
+                -- no other window available: create one (safe fallback)
+                vim.cmd("vsplit")
+                vim.cmd("wincmd l")
+            end
+        end
+
         local function cleanup(id)
             terminals[id] = nil
             term_names[id] = nil
         end
 
+        local layout = require("utils.layout")
         require("toggleterm").setup({
             size = function()
                 return math.floor(vim.o.lines*0.3)
             end,
 
             on_open = function(term)
+                local layout = require("utils.layout")
+
+                if term and term.bufnr then
+                    vim.b[term.bufnr].is_toggleterm = true
+                    vim.b[term.bufnr].toggleterm_direction = term.direction
+                    vim.b[term.bufnr].toggleterm_id = term.id
+                end
+
                 vim.defer_fn(function()
                     local win = get_term_window_by_bufnr(term.bufnr)
                     if win and vim.api.nvim_win_is_valid(win) then
                         term.window = win
                         vim.api.nvim_set_hl(0, "WinBarTerm", { fg = "#a3be8c", bold = true })
                         refresh_winbar(term)
+
+                        -- ✅ Keep your resizing logic (this fixes layout consistency)
+                        layout.defer_reflow(50)
                     end
                 end, 30) -- delay to ensure buffer is placed in window
 
@@ -62,12 +90,40 @@ return {
                 vim.defer_fn(function()
                     vim.cmd("stopinsert")
                 end, 20)
+
+                -- ✅ Extra: refresh Neo-tree layout if it’s open (prevents full-width terminal issue)
+                vim.defer_fn(function()
+                    local neotree_buf = vim.fn.bufnr("neo-tree")
+                    local neotree_win = (neotree_buf ~= -1) and vim.fn.bufwinnr(neotree_buf) or -1
+
+                    if neotree_win ~= -1 then
+                        local current_win = vim.api.nvim_get_current_win()
+                        vim.cmd("Neotree toggle")
+                        vim.cmd("Neotree toggle")
+                        vim.defer_fn(function()
+                            if vim.api.nvim_win_is_valid(current_win) then
+                                vim.api.nvim_set_current_win(current_win)
+                            end
+                        end, 30)
+                    end
+                end, 100)
             end,
             on_exit = function(term)
+                if term and term.bufnr then
+                    pcall(function()
+                        if vim.api.nvim_buf_is_valid(term.bufnr) then
+                            vim.b[term.bufnr].is_toggleterm = nil
+                            vim.b[term.bufnr].toggleterm_direction = nil
+                            vim.b[term.bufnr].toggleterm_id = nil
+                        end
+                    end)
+                end
+
                 if terminals[term.id] then
                     cleanup(term.id)
                     table.insert(freed_ids, term.id)
                     vim.notify("Terminal " .. term.id .. " exited", vim.log.levels.INFO, { title = "ToggleTerm  " })
+                    layout.defer_reflow(50)
                 end
             end,
             close_on_exit = true,
@@ -76,6 +132,8 @@ return {
         })
 
         vim.keymap.set("n", "<leader>tn", function()
+            ensure_editor_focus()
+
             local h_terms = {}
             for _, t in pairs(terminals) do
                 if t.direction == "horizontal" then
@@ -96,10 +154,12 @@ return {
                 if t_new.bufnr and vim.api.nvim_buf_is_valid(t_new.bufnr) then
                     vim.b[t_new.bufnr].bufferline_exclude = true
                 end
+                layout.defer_reflow(60)
             end, 20)
         end, { desc = "New horizontal terminal", noremap = true, silent = true })
 
         vim.keymap.set("n", "<leader>th", function()
+            ensure_editor_focus()
             local h_terms = {}
             for _, t in pairs(terminals) do
                 if t.direction == "horizontal" then
@@ -225,6 +285,8 @@ return {
         end, { desc = "Delete terminal", noremap = true, silent = true })
 
         vim.keymap.set("n", "<leader>tt", function()
+            ensure_editor_focus()
+
             vim.g._creating_native_terminal = true
             vim.cmd("terminal")
             vim.g._creating_native_terminal = false

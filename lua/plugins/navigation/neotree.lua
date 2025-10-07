@@ -111,6 +111,7 @@ return {
             end
         end
 
+        local layout = require("utils.layout")
         require("neo-tree").setup({
 
             source_selector = {
@@ -315,23 +316,28 @@ return {
                 {
                     event = "neo_tree_window_after_open",
                     handler = function(args)
+                        -- lock Neo-tree’s width so horizontal splits don’t span it
+                        local winid = vim.api.nvim_get_current_win()
+                        pcall(vim.api.nvim_win_set_option, winid, "winfixwidth", true)
+
+                        layout.defer_reflow(60)
+
                         if type(args) == "table" and args.source then
                             last_neotree_source = args.source
                         end
 
-                        local win = vim.api.nvim_get_current_win()
-                        local buf = vim.api.nvim_win_get_buf(win)
+                        local buf = vim.api.nvim_win_get_buf(winid)
                         local function clear_columns()
-                            if not vim.api.nvim_win_is_valid(win) then return end
-                            pcall(vim.api.nvim_win_set_option, win, "statuscolumn", "")
-                            pcall(vim.api.nvim_win_set_option, win, "foldcolumn", "0")
-                            pcall(vim.api.nvim_win_set_option, win, "signcolumn", "no")
+                            if not vim.api.nvim_win_is_valid(winid) then return end
+                            pcall(vim.api.nvim_win_set_option, winid, "statuscolumn", "")
+                            pcall(vim.api.nvim_win_set_option, winid, "foldcolumn", "0")
+                            pcall(vim.api.nvim_win_set_option, winid, "signcolumn", "no")
 
                             local ok, gs = pcall(require, "gitsigns")
                             if ok then pcall(gs.detach, buf) end
                         end
 
-                        vim.defer_fn(clear_columns, 20)
+                        vim.defer_fn(clear_columns, 50)
                     end,
                 },
                 {
@@ -359,6 +365,15 @@ return {
                     end,
                 },
             }
+        })
+
+        vim.api.nvim_create_autocmd("BufWinLeave", {
+            callback = function(ev)
+                local ok, ft = pcall(vim.api.nvim_buf_get_option, ev.buf, "filetype")
+                if ok and ft == "neo-tree" then
+                    layout.defer_reflow(50)
+                end
+            end,
         })
 
         vim.keymap.set('n', '<leader>n', toggle_last_neotree, { noremap = true, silent = true })
