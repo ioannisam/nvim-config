@@ -275,7 +275,7 @@ return {
             end
 
             if not found then
-                vim.notify("Can't delete non termina window", vim.log.levels.WARN, { title = "ToggleTerm  " })
+                vim.notify("Can't delete non terminal window", vim.log.levels.WARN, { title = "ToggleTerm  " })
             end
         end, { desc = "Delete focused terminal", noremap = true, silent = true })
 

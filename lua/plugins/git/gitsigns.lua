@@ -50,10 +50,10 @@ return {
                     local current = vim.wo.signcolumn
                     if current == "yes" then
                         vim.wo.signcolumn = "no"
-                        vim.notify("Diff UI OFF", vim.log.levels.INFO, {title = "Gitsigns "})
+                        vim.notify("Diff UI ON", vim.log.levels.INFO, {title = "Gitsigns "})
                     else
                         vim.wo.signcolumn = "yes"
-                        vim.notify("Diff UI ON", vim.log.levels.INFO, {title = "Gitsigns "})
+                        vim.notify("Diff UI OFF", vim.log.levels.INFO, {title = "Gitsigns "})
                     end
                 end, opts)
 
