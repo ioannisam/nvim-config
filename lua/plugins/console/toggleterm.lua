@@ -8,7 +8,21 @@ return {
         local term_names = {}
 
         local freed_ids = {}
+        local MAX_TERMINALS = 5
         local function make_term(direction)
+            local count = 0
+            for _, _ in pairs(terminals) do
+                count = count + 1
+            end
+            if count >= MAX_TERMINALS then
+                vim.notify(
+                    string.format("Terminal limit (%d) reached. Close one to create a new terminal.", MAX_TERMINALS),
+                    vim.log.levels.WARN,
+                    { title = "ToggleTerm  " }
+                )
+                return nil
+            end
+
             local id
             if #freed_ids > 0 then
                 id = table.remove(freed_ids)
@@ -148,6 +162,10 @@ return {
             end
 
             local t_new, _ = make_term("horizontal")
+            if not t_new then
+                return  -- limit reached
+            end
+
             t_new:toggle()
 
             vim.defer_fn(function()
