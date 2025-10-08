@@ -1,7 +1,3 @@
--- TODO: 
---     Hover 'x' functionality
---     Middle mouse
-
 return {
     "akinsho/bufferline.nvim",
     version = "*",
@@ -232,6 +228,65 @@ return {
             require("bufdelete").bufdelete(bufnum, true)
             vim.notify("Buffer deleted", vim.log.levels.INFO, {title = "Bufferline "})
         end, { noremap = true, silent = true, desc = "Delete current buffer (native terminal allowed)" })
+
+        vim.keymap.set("n", "<leader>bD", function()
+            local deleter = require("utils.deleter")
+
+            local cur_win = vim.api.nvim_get_current_win()
+            local cur_buf = vim.api.nvim_get_current_buf()
+
+            local ordered = {}
+            local max_try = math.min(200, #vim.api.nvim_list_bufs() + 50)
+
+            for i = 1, max_try do
+                local ok, _ = pcall(vim.cmd, ("silent! BufferLineGoToBuffer %d"):format(i))
+                if not ok then
+                    break
+                end
+                local b = vim.api.nvim_get_current_buf()
+                if #ordered > 0 and ordered[#ordered] == b then
+                    break
+                end
+                table.insert(ordered, b)
+            end
+
+            pcall(vim.api.nvim_set_current_win, cur_win)
+            pcall(vim.api.nvim_set_current_buf, cur_buf)
+
+            local entries = {}
+            for idx, bufnr in ipairs(ordered) do
+                if vim.api.nvim_buf_is_valid(bufnr) and vim.api.nvim_buf_is_loaded(bufnr) then
+                    -- reuse your existing helpers (is_excluded, buffer_is_pinned)
+                    local excluded, _ = is_excluded(bufnr)
+                    if not excluded and not buffer_is_pinned(bufnr) then
+                        table.insert(entries, {
+                            bufnr = bufnr,
+                            ordinal = idx,
+                            name = vim.api.nvim_buf_get_name(bufnr),
+                        })
+                    end
+                end
+            end
+
+            if #entries == 0 then
+                vim.notify("No buffers available to delete", vim.log.levels.INFO, { title = "Buffer Deleter" })
+                return
+            end
+
+            deleter.multiselect(entries, {
+                prompt = "Select buffers to delete:",
+                format_item = function(b)
+                    local name = (b.name ~= "" and vim.fn.fnamemodify(b.name, ":t")) or "[No Name]"
+                    return string.format("[%d] %s", b.ordinal, name)
+                end,
+            }, function(selected)
+                    for _, e in ipairs(selected) do
+                        if vim.api.nvim_buf_is_valid(e.bufnr) then
+                            require("bufdelete").bufdelete(e.bufnr, true)
+                        end
+                    end
+                end)
+        end, { noremap = true, silent = true, desc = "Delete buffers via Telescope (bufferline ordinals)" })
 
         vim.keymap.set("n", "<leader>bn", "<Cmd>BufferLineCycleNext<CR>", {
             noremap = true,

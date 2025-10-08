@@ -261,16 +261,25 @@ return {
 
         vim.keymap.set("n", "<leader>td", function()
             local win = vim.api.nvim_get_current_win()
+            local found = false
+
             for id, t in pairs(terminals) do
                 if t.window == win then
                     t:shutdown()
                     cleanup(id)
                     table.insert(freed_ids, id)
                     vim.notify("Deleted terminal " .. id, vim.log.levels.INFO, { title = "ToggleTerm  " })
-                    return
+                    found = true
+                    break
                 end
             end
 
+            if not found then
+                vim.notify("Can't delete non termina window", vim.log.levels.WARN, { title = "ToggleTerm  " })
+            end
+        end, { desc = "Delete focused terminal", noremap = true, silent = true })
+
+        vim.keymap.set("n", "<leader>tD", function()
             local items = {}
             for id, t in pairs(terminals) do
                 table.insert(items, {
@@ -300,7 +309,7 @@ return {
                         vim.notify("Deleted terminal " .. choice.id, vim.log.levels.INFO, { title = "ToggleTerm  " })
                     end
                 end)
-        end, { desc = "Delete terminal", noremap = true, silent = true })
+        end, { desc = "Delete terminals via picker", noremap = true, silent = true })
 
         vim.keymap.set("n", "<leader>tt", function()
             ensure_editor_focus()
