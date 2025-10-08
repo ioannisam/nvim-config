@@ -76,38 +76,28 @@ return {
 
         vim.api.nvim_create_user_command("PersistenceClear", function()
             local session_dir = opts.dir
+            local sessions = vim.fn.globpath(session_dir, "*.vim", false, true)
 
-            local function clear_sessions()
-                local sessions = vim.fn.globpath(session_dir, "*.vim", false, true)
-                if #sessions == 0 then
-                    vim.notify("No sessions left to clear!", vim.log.levels.INFO, { title = "Persistence " })
-                    return
-                end
+            if #sessions == 0 then
+                vim.notify("No sessions to clear!", vim.log.levels.INFO, { title = "Persistence " })
+                return
+            end
 
-                vim.ui.select(sessions, {
-                    prompt = "Select session to delete (ESC to stop):",
-                    format_item = function(item) return vim.fn.fnamemodify(item, ":t") end,
-                }, function(choice)
-                        if not choice then
-                            return
-                        end
-
+            local deleter = require("utils.deleter")
+            deleter.multiselect(sessions, {
+                prompt = "Select sessions to delete:",
+                format_item = function(item)
+                    return vim.fn.fnamemodify(item, ":t")
+                end,
+            }, function(selected)
+                    for _, choice in ipairs(selected) do
                         if vim.fn.delete(choice) == 0 then
                             vim.notify("Deleted session: " .. vim.fn.fnamemodify(choice, ":t"), vim.log.levels.INFO, { title = "Persistence " })
                         else
                             vim.notify("Failed to delete session: " .. vim.fn.fnamemodify(choice, ":t"), vim.log.levels.ERROR, { title = "Persistence " })
                         end
-
-                        local remaining = vim.fn.globpath(session_dir, "*.vim", false, true)
-                        if #remaining > 0 then
-                            clear_sessions()
-                        else
-                            vim.notify("No sessions left to clear!", vim.log.levels.INFO, { title = "Persistence " })
-                        end
-                    end)
-            end
-
-            clear_sessions()
+                    end
+                end)
         end, { desc = "Clear multiple sessions interactively" })
     end,
 }

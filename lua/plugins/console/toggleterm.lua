@@ -268,20 +268,20 @@ return {
                 return
             end
 
-            vim.ui.select(items, {
-                prompt = "Delete terminal:",
+            local deleter = require("utils.deleter")
+            deleter.multiselect(items, {
+                prompt = "Select terminals to delete:",
                 format_item = function(x)
                     return string.format("[%d] %s (%s)", x.id, x.name, x.dir)
                 end,
-            }, function(choice)
-                if not choice then
-                    return
-                end
-                choice.term:shutdown()
-                cleanup(choice.id)
-                table.insert(freed_ids, choice.id)
-                vim.notify("Deleted terminal " .. choice.id, vim.log.levels.INFO, { title = "ToggleTerm  " })
-            end)
+            }, function(selected)
+                    for _, choice in ipairs(selected) do
+                        choice.term:shutdown()
+                        cleanup(choice.id)
+                        table.insert(freed_ids, choice.id)
+                        vim.notify("Deleted terminal " .. choice.id, vim.log.levels.INFO, { title = "ToggleTerm  " })
+                    end
+                end)
         end, { desc = "Delete terminal", noremap = true, silent = true })
 
         vim.keymap.set("n", "<leader>tt", function()
