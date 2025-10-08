@@ -44,21 +44,20 @@ function M.multiselect(items, opts, on_confirm)
         sorter = conf.generic_sorter({}),
         previewer = false,
         attach_mappings = function(prompt_bufnr, map)
-            -- ✅ Confirm: return multi-selected items OR the current one if none
             actions.select_default:replace(function()
                 local picker = action_state.get_current_picker(prompt_bufnr)
                 local selections = picker:get_multi_selection()
+                local current = action_state.get_selected_entry()
                 local results = {}
+                local already_selected = {}
 
-                if #selections > 0 then
-                    for _, entry in ipairs(selections) do
-                        table.insert(results, entry.value)
-                    end
-                else
-                    local current = action_state.get_selected_entry()
-                    if current and current.value then
-                        table.insert(results, current.value)
-                    end
+                for _, entry in ipairs(selections) do
+                    table.insert(results, entry.value)
+                    already_selected[entry.value] = true
+                end
+
+                if current and current.value and not already_selected[current.value] then
+                    table.insert(results, current.value)
                 end
 
                 actions.close(prompt_bufnr)
