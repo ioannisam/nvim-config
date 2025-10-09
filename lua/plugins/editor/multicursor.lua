@@ -2,14 +2,59 @@ return {
     "jake-stewart/multicursor.nvim",
     branch = "1.0",
     config = function()
+
+
+        local function is_special_buffer()
+            local buftype = vim.bo.buftype or ""
+            local filetype = vim.bo.filetype or ""
+            local wtype = vim.fn.win_gettype() or ""
+
+            if buftype ~= "" and buftype ~= "acwrite" then
+                return true
+            end
+
+            if wtype ~= "" and wtype ~= "normal" then
+                return true
+            end
+
+            local excluded_filetypes = {
+                "neo-tree", "NvimTree", "undotree",
+                "spectre", "spectre_panel",
+                "TelescopePrompt", "TelescopeResults",
+                "dap-repl", "dapui", "dapui_scopes", "dapui_breakpoints",
+                "dapui_stacks", "dapui_watches",
+                "qf", "Trouble", "Outline", "neotest-summary",
+                "help", "man", "lspinfo",
+                "gitcommit", "alpha", "noice", "copilot",
+                "lazy", "mason",
+                "fugitive", "notify",
+                -- terminal types
+                "terminal", "toggleterm"
+            }
+
+            if vim.tbl_contains(excluded_filetypes, filetype) then
+                return true
+            end
+
+            return false
+        end
+
         local mc = require("multicursor-nvim")
         mc.setup()
 
         vim.keymap.set("n", "<leader>vm", function()
+            if is_special_buffer() then
+                vim.notify("MultiCursor disabled in this buffer.", vim.log.levels.WARN, { title = "MultiCursor 󱢓" })
+                return
+            end
             mc.addCursor()
             vim.notify("Multi-cursor mode activated!", vim.log.levels.INFO, { title = "MultiCursor 󱢓" })
         end, { desc = "Activate multi-cursor mode" })
         vim.keymap.set("x", "<leader>vm", function()
+            if is_special_buffer() then
+                vim.notify("MultiCursor disabled in this buffer.", vim.log.levels.WARN, { title = "MultiCursor 󱢓" })
+                return
+            end
             vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
 
             local line = vim.fn.line("'<")
