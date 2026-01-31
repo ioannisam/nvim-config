@@ -2,24 +2,17 @@ return {
     "nvim-treesitter/nvim-treesitter",
     dependencies = {
         {
-            "nvim-treesitter/nvim-treesitter-textobjects",
-        },
-        {
             "windwp/nvim-ts-autotag",
             event = "InsertEnter",
             config = function()
                 require("nvim-ts-autotag").setup()
             end,
         },
-        {
-            "nvim-treesitter/playground",
-            cmd = "TSPlaygroundToggle",
-        },
     },
     build = ":TSUpdate",
     event = { "BufReadPost", "BufNewFile" },
     config = function()
-        require("nvim-treesitter.configs").setup({
+        require("nvim-treesitter.config").setup({
             ensure_installed = { "lua", "vim", "bash", "c", "cpp", "rust", "python", "json", "markdown", --[["latex"]] },
             auto_install = true,
             highlight = {
