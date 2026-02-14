@@ -373,37 +373,75 @@ return {
                 title_pos = "center",
             })
 
-            vim.api.nvim_set_option_value("winhighlight", "Normal:Normal,FloatBorder:FloatBorder", { win = win })
+            local function refocus_target()
+                vim.schedule(function()
+                    if opts.refocus_win and vim.api.nvim_win_is_valid(opts.refocus_win) then
+                        vim.api.nvim_set_current_win(opts.refocus_win)
+                        return
+                    end
 
-            vim.keymap.set("n", "q", function()
+                    if opts.refocus_buf and vim.api.nvim_buf_is_valid(opts.refocus_buf) then
+                        for _, w in ipairs(vim.api.nvim_list_wins()) do
+                            if vim.api.nvim_win_get_buf(w) == opts.refocus_buf then
+                                vim.api.nvim_set_current_win(w)
+                                return
+                            end
+                        end
+                    end
+                end)
+            end
+
+            local function close_win()
                 if vim.api.nvim_win_is_valid(win) then
                     vim.api.nvim_win_close(win, true)
                 end
+            end
+
+            vim.api.nvim_set_option_value("winhighlight", "Normal:Normal,FloatBorder:FloatBorder", { win = win })
+
+            vim.keymap.set("n", "q", function()
+                close_win()
             end, { buffer = buf, nowait = true, desc = "Close floating window" })
 
+            vim.keymap.set("n", "<Esc>", function()
+                close_win()
+            end, { buffer = buf, nowait = true, desc = "Close floating window" })
+
+            -- Ensure the float is focused (some quickfix/bqf flows can steal focus right after opening)
+            if vim.api.nvim_win_is_valid(win) then
+                vim.api.nvim_set_current_win(win)
+                vim.schedule(function()
+                    if vim.api.nvim_win_is_valid(win) then
+                        vim.api.nvim_set_current_win(win)
+                    end
+                end)
+                vim.defer_fn(function()
+                    if vim.api.nvim_win_is_valid(win) then
+                        vim.api.nvim_set_current_win(win)
+                    end
+                end, 10)
+            end
+
+            -- Close on focus loss, but with a tiny delay to ignore transient focus blips on open.
             vim.api.nvim_create_autocmd("WinLeave", {
                 buffer = buf,
                 once = true,
                 callback = function()
-                    if vim.api.nvim_win_is_valid(win) then
-                        vim.api.nvim_win_close(win, true)
-                    end
+                    vim.defer_fn(function()
+                        if vim.api.nvim_win_is_valid(win) and vim.api.nvim_get_current_win() ~= win then
+                            close_win()
+                            refocus_target()
+                        end
+                    end, 20)
                 end,
             })
 
-            if opts.refocus_win_type then
+            if opts.refocus_win or opts.refocus_buf then
                 vim.api.nvim_create_autocmd("WinClosed", {
+                    pattern = tostring(win),
                     once = true,
                     callback = function()
-                        vim.schedule(function()
-                            for _, w in ipairs(vim.api.nvim_list_wins()) do
-                                local b = vim.api.nvim_win_get_buf(w)
-                                if vim.bo[b].buftype == opts.refocus_win_type then
-                                    vim.api.nvim_set_current_win(w)
-                                    break
-                                end
-                            end
-                        end)
+                        refocus_target()
                     end,
                 })
             end
@@ -419,6 +457,7 @@ return {
                 local opts = { buffer = args.buf, nowait = true, desc = "Notifications QF" }
 
                 vim.keymap.set("n", "<CR>", function()
+                    local qf_win = vim.api.nvim_get_current_win()
                     local items = vim.fn.getqflist()
                     local line = vim.fn.line(".")
                     local item = items[line]
@@ -432,23 +471,8 @@ return {
                     details_buf, details_win = open_float(
                         string.format(" Notification Details 󰂟 "),
                         lines,
-                        { refocus_win_type = "quickfix" }
+                        { refocus_win = qf_win, refocus_buf = args.buf }
                     )
-                    -- refocus to quickfix after closing
-                    vim.api.nvim_create_autocmd("WinClosed", {
-                        once = true,
-                        callback = function()
-                            vim.schedule(function()
-                                for _, w in ipairs(vim.api.nvim_list_wins()) do
-                                    local b = vim.api.nvim_win_get_buf(w)
-                                    if vim.bo[b].buftype == "quickfix" then
-                                        vim.api.nvim_set_current_win(w)
-                                        break
-                                    end
-                                end
-                            end)
-                        end,
-                    })
                 end, vim.tbl_extend("force", opts, { desc = "Open notification detail in floating view" }))
 
                 for _, key in ipairs({ "d", "<Delete>" }) do
