@@ -28,90 +28,337 @@ return {
             end)
         end
 
+        local function apply_neotree_orange_highlights()
+            local orange = "#fab387"
+
+            local ok_palette, palettes = pcall(require, "catppuccin.palettes")
+            if ok_palette and palettes and type(palettes.get_palette) == "function" then
+                local palette = palettes.get_palette(vim.g.catppuccin_flavour or "mocha")
+                if palette then
+                    orange = palette.peach or palette.yellow or orange
+                end
+            end
+
+            vim.api.nvim_set_hl(0, "NeoTreeMultiSelectName", { fg = orange, bold = true })
+        end
+
         local last_neotree_source = "filesystem"
         local function toggle_last_neotree()
             local src = last_neotree_source or "filesystem"
             require("neo-tree.command").execute({ toggle = true, source = src })
         end
 
-        local function delete_buffer(state)
-            local node = state.tree:get_node()
-            if not node then return end
-            local bufnr = vim.fn.bufnr(node.path)
+        local get_multiselect_state
+        local clear_multiselect
+        local refresh_source
+
+        local function get_selected_paths_or_current(state, options)
+            local opts = options or {}
+            local selected, _ = get_multiselect_state(state)
+            local current = state.tree:get_node()
+            local current_path = current and current.path or nil
+            local include_current_if_missing = opts.include_current_if_missing == true
+            local allow = opts.allow or function(path)
+                return type(path) == "string"
+            end
+
+            local paths = {}
+            local seen = {}
+
+            if #selected.order > 0 then
+                local current_included = false
+                for _, entry in ipairs(selected.order) do
+                    local path = entry.path
+                    if allow(path) and not seen[path] then
+                        table.insert(paths, path)
+                        seen[path] = true
+                    end
+                    if current_path and path == current_path then
+                        current_included = true
+                    end
+                end
+                if include_current_if_missing and current_path and not current_included and allow(current_path) and not seen[current_path] then
+                    table.insert(paths, current_path)
+                    seen[current_path] = true
+                end
+            elseif current_path and allow(current_path) then
+                table.insert(paths, current_path)
+                seen[current_path] = true
+            end
+
+            return paths
+        end
+
+        local function safe_bdelete(bufnr)
+            if type(bufnr) ~= "number" or bufnr < 1 then return end
+            if not vim.api.nvim_buf_is_valid(bufnr) then return end
+            pcall(vim.cmd, "silent! bdelete! " .. bufnr)
+        end
+
+        local function delete_buffer_entry(state, target_path)
+            local path = target_path
+            if not path then
+                local node = state.tree:get_node()
+                if not node then return end
+                path = node.path
+            end
+
+            local bufnr = vim.fn.bufnr(path)
             if bufnr == -1 then return end
 
-            local function is_real(b)
-                if not vim.api.nvim_buf_is_valid(b) then return false end
-                if not vim.bo[b].buflisted then return false end
-                local name = vim.api.nvim_buf_get_name(b)
-                if name == "" then return false end
-                local ft = vim.api.nvim_buf_get_option(b, "filetype")
-                if ft == "alpha" or ft == "neo-tree" or ft == "NvimTree" then return false end
-                return true
+            safe_bdelete(bufnr)
+        end
+
+        local function delete_selected_buffers_or_current(state)
+            local paths = get_selected_paths_or_current(state, {
+                include_current_if_missing = false,
+                allow = function(path)
+                    return type(path) == "string" and vim.fn.bufnr(path) ~= -1
+                end,
+            })
+
+            if #paths == 0 then return end
+
+            if #paths == 1 then
+                delete_buffer_entry(state, paths[1])
+                refresh_source(state, "buffers")
+                clear_multiselect(state)
+                return
             end
 
-            local real = {}
-            for _, b in ipairs(vim.api.nvim_list_bufs()) do
-                if is_real(b) then table.insert(real, b) end
+            for _, path in ipairs(paths) do
+                delete_buffer_entry(state, path)
             end
 
-            local will_be_last = (#real == 1 and real[1] == bufnr)
+            refresh_source(state, "buffers")
+            clear_multiselect(state)
+        end
 
-            local placeholder_win
-            local created_split = false
-            local curwin = vim.api.nvim_get_current_win()
+        refresh_source = function(state, source)
+            local ok, manager = pcall(require, "neo-tree.sources.manager")
+            if ok then
+                manager.refresh(source or state.name)
+            end
+        end
 
-            if will_be_last then
-                for _, win in ipairs(vim.api.nvim_list_wins()) do
-                    local wb = vim.api.nvim_win_get_buf(win)
-                    local wft = vim.api.nvim_buf_get_option(wb, "filetype")
-                    if wft ~= "neo-tree" and wft ~= "alpha" then
-                        placeholder_win = win
+        local function run_git_on_selected_or_current(state, spec)
+            local paths = get_selected_paths_or_current(state, {
+                include_current_if_missing = true,
+                allow = function(path)
+                    return type(path) == "string" and #path > 0
+                end,
+            })
+
+            if #paths == 0 then
+                refresh_source(state, "git_status")
+                return
+            end
+
+            local failed = {}
+            for _, path in ipairs(paths) do
+                local out = vim.fn.system(spec.make_cmd(path))
+                if vim.v.shell_error ~= 0 then
+                    table.insert(failed, { path = path, out = out })
+                end
+            end
+
+            if #failed == 0 then
+                if type(spec.on_success) == "function" then
+                    spec.on_success(paths)
+                end
+                clear_multiselect(state)
+            else
+                vim.notify(
+                    (spec.fail_message or "Git command failed") .. ": " .. relative_path(failed[1].path),
+                    vim.log.levels.ERROR,
+                    { title = "Neo-tree 󰹩" }
+                )
+            end
+
+            refresh_source(state, "git_status")
+        end
+
+        local function git_add_selected_or_current(state)
+            run_git_on_selected_or_current(state, {
+                make_cmd = function(path)
+                    return { "git", "add", "--", path }
+                end,
+                on_success = function(paths)
+                    vim.notify("Staged " .. tostring(#paths) .. " file(s)", vim.log.levels.INFO, { title = "Neo-tree 󰹩" })
+                end,
+                fail_message = "Git add failed",
+            })
+        end
+
+        local function git_unstage_selected_or_current(state)
+            run_git_on_selected_or_current(state, {
+                make_cmd = function(path)
+                    return { "git", "restore", "--staged", "--", path }
+                end,
+                on_success = function(paths)
+                    vim.notify("Unstaged " .. tostring(#paths) .. " file(s)", vim.log.levels.INFO, { title = "Neo-tree 󰹩" })
+                end,
+                fail_message = "Git unstage failed",
+            })
+        end
+
+        local function git_revert_selected_or_current(state)
+            local paths = get_selected_paths_or_current(state, {
+                include_current_if_missing = true,
+                allow = function(path)
+                    return type(path) == "string" and #path > 0
+                end,
+            })
+            if #paths == 0 then return end
+
+            local message
+            if #paths == 1 then
+                message = "Revert changes to: " .. relative_path(paths[1]) .. "?"
+            else
+                message = "Revert changes to " .. tostring(#paths) .. " selected file(s)?"
+            end
+
+            git_confirm(message, function()
+                local failed = {}
+                for _, path in ipairs(paths) do
+                    local out = vim.fn.system({ "git", "restore", "--", path })
+                    if vim.v.shell_error == 0 then
+                        local bufnr = vim.fn.bufnr(path)
+                        if bufnr ~= -1 then
+                            pcall(vim.cmd, "silent checktime " .. bufnr)
+                        end
+                    else
+                        table.insert(failed, { path = path, out = out })
+                    end
+                end
+
+                if #failed == 0 then
+                    if #paths == 1 then
+                        vim.notify("File reverted: " .. relative_path(paths[1]), vim.log.levels.INFO, { title = "Neo-tree 󰹩" })
+                    else
+                        vim.notify("Reverted " .. tostring(#paths) .. " selected file(s)", vim.log.levels.INFO, { title = "Neo-tree 󰹩" })
+                    end
+                    clear_multiselect(state)
+                else
+                    vim.notify("Git restore failed: " .. relative_path(failed[1].path), vim.log.levels.ERROR, { title = "Neo-tree 󰹩" })
+                end
+
+                refresh_source(state, "git_status")
+            end)
+        end
+
+        local layout = require("utils.layout")
+
+        local multiselect_by_source = {}
+
+        local function patch_neotree_name_component()
+            local ok_components, components = pcall(require, "neo-tree.sources.common.components")
+            if not ok_components or type(components.name) ~= "function" then
+                return
+            end
+            if components._multiselect_name_patched then
+                return
+            end
+
+            local original_name = components.name
+            components.name = function(config, node, state)
+                local result = original_name(config, node, state)
+                local selected = multiselect_by_source[(state and state.name) or "filesystem"]
+
+                if node and node.type ~= "directory" and selected and selected.lookup[node:get_id()] then
+                    if type(result) == "table" and result.text then
+                        result.highlight = "NeoTreeMultiSelectName"
+                    end
+                end
+
+                return result
+            end
+
+            components._multiselect_name_patched = true
+        end
+
+        get_multiselect_state = function(state)
+            local source = (state and state.name) or "filesystem"
+            if not multiselect_by_source[source] then
+                multiselect_by_source[source] = { order = {}, lookup = {} }
+            end
+            return multiselect_by_source[source], source
+        end
+
+        clear_multiselect = function(state)
+            local selected, source = get_multiselect_state(state)
+            selected.order = {}
+            selected.lookup = {}
+            local ok, manager = pcall(require, "neo-tree.sources.manager")
+            if ok then
+                manager.refresh(source)
+            end
+        end
+
+        local function toggle_multiselect(state, move_direction)
+            local node = state.tree:get_node()
+            if not node then return end
+            if node.type == "directory" then return end
+
+            local selected, source = get_multiselect_state(state)
+            local id = node:get_id()
+            if selected.lookup[id] then
+                selected.lookup[id] = nil
+                for idx, entry in ipairs(selected.order) do
+                    if entry.id == id then
+                        table.remove(selected.order, idx)
                         break
                     end
                 end
-                if not placeholder_win or not vim.api.nvim_win_is_valid(placeholder_win) then
-                    vim.cmd("vsplit")
-                    placeholder_win = vim.api.nvim_get_current_win()
-                    created_split = true
-                end
-                vim.api.nvim_set_current_win(placeholder_win)
-                vim.cmd("enew")
-                vim.bo[vim.api.nvim_get_current_buf()].buflisted = true
-                vim.api.nvim_set_current_win(curwin)
-            end
-
-            if vim.api.nvim_buf_is_loaded(bufnr) then
-                vim.api.nvim_buf_delete(bufnr, { force = true })
             else
-                pcall(vim.fn.bufdelete, bufnr, true)
-            end
-
-            if will_be_last then
-                if placeholder_win and vim.api.nvim_win_is_valid(placeholder_win) then
-                    vim.api.nvim_set_current_win(placeholder_win)
-                end
-                local ok, alpha = pcall(require, "alpha")
-                if ok and alpha.start then
-                    -- close neo-tree first
-                    require("neo-tree.command").execute({ action = "close" })
-                    -- start alpha
-                    alpha.start(true)
-                    if created_split and placeholder_win and vim.api.nvim_win_is_valid(placeholder_win) then
-                        vim.api.nvim_win_close(placeholder_win, true)
-                    end
-                else
-                    vim.notify("alpha not available; left an empty buffer open", vim.log.levels.WARN, { title = "Neo-tree 󰹩" })
-                end
+                selected.lookup[id] = true
+                table.insert(selected.order, {
+                    id = id,
+                    path = node.path,
+                })
             end
 
             local ok, manager = pcall(require, "neo-tree.sources.manager")
             if ok then
-                manager.refresh("buffers")
+                manager.refresh(source)
+            end
+
+            if move_direction == "next" then
+                vim.cmd("normal! j")
+            elseif move_direction == "prev" then
+                vim.cmd("normal! k")
             end
         end
 
-        local layout = require("utils.layout")
+        local function open_multiselect_or_current(state)
+            local targets = get_selected_paths_or_current(state, {
+                include_current_if_missing = true,
+                allow = function(path)
+                    return type(path) == "string" and vim.fn.filereadable(path) == 1
+                end,
+            })
+
+            if #targets == 0 then
+                local ok_cmd, source_commands = pcall(require, "neo-tree.sources." .. state.name .. ".commands")
+                if ok_cmd and type(source_commands.open) == "function" then
+                    source_commands.open(state)
+                end
+                return
+            end
+
+            if vim.bo.filetype == "neo-tree" then
+                vim.cmd("wincmd p")
+            end
+
+            for _, path in ipairs(targets) do
+                vim.cmd("edit " .. vim.fn.fnameescape(path))
+            end
+
+            clear_multiselect(state)
+        end
+
+        patch_neotree_name_component()
+
         require("neo-tree").setup({
 
             source_selector = {
@@ -136,6 +383,25 @@ return {
                     folder_open = "",
                     folder_empty = "",
                     default = "",
+                    provider = function(icon, node, state)
+                        if node.type == "file" or node.type == "terminal" then
+                            local success, web_devicons = pcall(require, "nvim-web-devicons")
+                            local name = node.type == "terminal" and "terminal" or node.name
+                            if success then
+                                local devicon, hl = web_devicons.get_icon(name)
+                                icon.text = devicon or icon.text
+                                icon.highlight = hl or icon.highlight
+                            end
+                        end
+
+                        local selected = multiselect_by_source[(state and state.name) or "filesystem"]
+                        if node.type ~= "directory" and selected and selected.lookup[node:get_id()] then
+                            icon.text = "✚ " .. icon.text
+                            icon.highlight = "NeoTreeMultiSelectName"
+                        end
+
+                        return icon
+                    end,
                 },
                 git_status = {
                     -- symbols = false
@@ -156,7 +422,7 @@ return {
             },
 
             use_default_mappings = false,
-            close_if_last_window = true,
+            close_if_last_window = false,
             sort_case_insensitive = true,
             sort_function = nil,
             window = {
@@ -168,8 +434,13 @@ return {
                 },
                 mappings = {
                     ["<2-leftmouse>"] = "open",
-                    ["<cr>"] = "toggle_node",
-                    ["<cr>"] = "open",
+                    ["<cr>"] = open_multiselect_or_current,
+                    ["<Tab>"] = function(state)
+                        toggle_multiselect(state, "next")
+                    end,
+                    ["<S-Tab>"] = function(state)
+                        toggle_multiselect(state, "prev")
+                    end,
                     ["s"] = "open_vsplit",
                     ["S"] = "open_split",
 
@@ -253,7 +524,7 @@ return {
                 show_unloaded = true,
                 window = {
                     mappings = {
-                        ["d"] = delete_buffer,
+                        ["d"] = delete_selected_buffers_or_current,
                     },
                 },
             },
@@ -263,25 +534,9 @@ return {
                 window = {
                     position = "float",
                     mappings = {
-                        ["a"] = "git_add_file",
-                        ["u"] = "git_unstage_file",
-                        ["r"] = function(state)
-                            local node = state.tree:get_node()
-                            local path = node.path
-                            git_confirm("Revert changes to: " .. relative_path(path) .. "?", function()
-                                local out = vim.fn.system({ "git", "restore", "--", path })
-                                if vim.v.shell_error == 0 then
-                                    local bufnr = vim.fn.bufnr(path)
-                                    if bufnr ~= -1 then
-                                        pcall(vim.cmd, "silent checktime " .. bufnr)
-                                    end
-                                    vim.notify("File reverted: " .. relative_path(path), vim.log.levels.INFO, {title = "Neo-tree 󰹩"})
-                                else
-                                    vim.notify("Git restore failed: " .. out, vim.log.levels.ERROR, {title = "Neo-tree 󰹩"})
-                                end
-                                require("neo-tree.sources.git_status").refresh(state)
-                            end)
-                        end,
+                        ["a"] = git_add_selected_or_current,
+                        ["u"] = git_unstage_selected_or_current,
+                        ["r"] = git_revert_selected_or_current,
                         ["c"] = "git_commit",
                         ["p"] = "git_push",
                         ["g"] = "git_commit_and_push",
@@ -373,6 +628,13 @@ return {
                 if ok and ft == "neo-tree" then
                     layout.defer_reflow(50)
                 end
+            end,
+        })
+
+        apply_neotree_orange_highlights()
+        vim.api.nvim_create_autocmd("ColorScheme", {
+            callback = function()
+                apply_neotree_orange_highlights()
             end,
         })
 
