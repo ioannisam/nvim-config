@@ -92,7 +92,56 @@ return {
         local function safe_bdelete(bufnr)
             if type(bufnr) ~= "number" or bufnr < 1 then return end
             if not vim.api.nvim_buf_is_valid(bufnr) then return end
+
+            local ok_bufdelete, bufdelete = pcall(require, "bufdelete")
+            if ok_bufdelete and type(bufdelete.bufdelete) == "function" then
+                pcall(bufdelete.bufdelete, bufnr, true)
+                return
+            end
+
             pcall(vim.cmd, "silent! bdelete! " .. bufnr)
+        end
+
+        local function has_real_file_buffers()
+            for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buflisted then
+                    local name = vim.api.nvim_buf_get_name(buf)
+                    if name ~= "" and vim.bo[buf].buftype == "" then
+                        return true
+                    end
+                end
+            end
+            return false
+        end
+
+        local function show_alpha_if_no_real_buffers()
+            vim.schedule(function()
+                if has_real_file_buffers() then return end
+
+                for _, win in ipairs(vim.api.nvim_list_wins()) do
+                    local buf = vim.api.nvim_win_get_buf(win)
+                    if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype ~= "neo-tree" then
+                        pcall(vim.api.nvim_set_current_win, win)
+                        break
+                    end
+                end
+
+                local cur = vim.api.nvim_get_current_buf()
+                if
+                    vim.api.nvim_buf_is_valid(cur)
+                    and vim.api.nvim_buf_get_name(cur) == ""
+                    and not vim.bo[cur].modified
+                    and vim.bo[cur].buftype == ""
+                    and vim.bo[cur].filetype == ""
+                then
+                    pcall(vim.cmd, "bwipeout!")
+                end
+
+                local ok_alpha, alpha = pcall(require, "alpha")
+                if ok_alpha and type(alpha.start) == "function" then
+                    alpha.start(true)
+                end
+            end)
         end
 
         local function delete_buffer_entry(state, target_path)
@@ -123,6 +172,7 @@ return {
                 delete_buffer_entry(state, paths[1])
                 refresh_source(state, "buffers")
                 clear_multiselect(state)
+                show_alpha_if_no_real_buffers()
                 return
             end
 
@@ -132,6 +182,7 @@ return {
 
             refresh_source(state, "buffers")
             clear_multiselect(state)
+            show_alpha_if_no_real_buffers()
         end
 
         refresh_source = function(state, source)
