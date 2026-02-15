@@ -109,8 +109,6 @@ return {
                     previewer = true,
                     hidden = false,
                     follow = false,
-                    no_ignore = false,
-                    no_ignore_parent = false,
                     search_dirs = nil,
                     find_command = nil,
                 },
