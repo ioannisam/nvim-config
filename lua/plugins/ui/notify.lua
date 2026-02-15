@@ -330,6 +330,13 @@ return {
             if not qf_open then
                 special_windows.prepare_for_open("notifications")
                 vim.cmd("copen")
+                local qf_info = vim.fn.getqflist({ winid = 0 })
+                local qf_win = qf_info and qf_info.winid or 0
+                if qf_win and qf_win ~= 0 and vim.api.nvim_win_is_valid(qf_win) then
+                    local qf_buf = vim.api.nvim_win_get_buf(qf_win)
+                    vim.bo[qf_buf].buflisted = false
+                    vim.b[qf_buf].bufferline_exclude = true
+                end
                 vim.schedule(function()
                     vim.cmd("call SetQFSyntax()")
                 end)
