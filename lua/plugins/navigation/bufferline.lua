@@ -6,6 +6,7 @@ return {
         "famiu/bufdelete.nvim",
     },
     config = function()
+        local focus_main_window
 
         require("bufferline").setup({
             options = {
@@ -23,7 +24,18 @@ return {
                         require("bufdelete").bufdelete(bufnr, true)
                     end
                 end,
-                left_mouse_command = "buffer %d",
+                left_mouse_command = function(bufnr)
+                    if not vim.api.nvim_buf_is_valid(bufnr) then
+                        return
+                    end
+
+                    if focus_main_window and not focus_main_window(true) then
+                        vim.notify("No main buffer window available", vim.log.levels.WARN, { title = "Bufferline " })
+                        return
+                    end
+
+                    vim.api.nvim_set_current_buf(bufnr)
+                end,
                 middle_mouse_command = nil,
 
                 indicator = {
@@ -117,7 +129,7 @@ return {
             },
         })
 
-        local function is_excluded(bufnr)
+        local function is_excluded(bufnr, winid)
             if not (vim.api.nvim_buf_is_valid(bufnr) and vim.api.nvim_buf_is_loaded(bufnr)) then
                 return true, "invalid"
             end
@@ -125,7 +137,12 @@ return {
             local buftype = vim.bo[bufnr].buftype
             local filetype = vim.bo[bufnr].filetype
             local name = vim.api.nvim_buf_get_name(bufnr)
-            local wtype = vim.fn.win_gettype()
+            local wtype = ""
+            if winid and vim.api.nvim_win_is_valid(winid) then
+                wtype = vim.fn.win_gettype(winid)
+            else
+                wtype = vim.fn.win_gettype()
+            end
 
             local excluded_filetypes = {
                 "neo-tree", "NvimTree",
@@ -160,6 +177,45 @@ return {
             return false
         end
 
+        focus_main_window = function(silent)
+            local cur_win = vim.api.nvim_get_current_win()
+            local cur_buf = vim.api.nvim_win_get_buf(cur_win)
+            local cur_excluded = is_excluded(cur_buf, cur_win)
+            if vim.fn.win_gettype(cur_win) == "" and not cur_excluded then
+                return true
+            end
+
+            local best_win = nil
+            local best_area = -1
+
+            for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+                if vim.api.nvim_win_is_valid(win) and vim.fn.win_gettype(win) == "" then
+                    local ok_cfg, cfg = pcall(vim.api.nvim_win_get_config, win)
+                    if ok_cfg and cfg and (not cfg.relative or cfg.relative == "") then
+                        local buf = vim.api.nvim_win_get_buf(win)
+                        local excluded = is_excluded(buf, win)
+                        if not excluded then
+                            local area = vim.api.nvim_win_get_width(win) * vim.api.nvim_win_get_height(win)
+                            if area > best_area then
+                                best_area = area
+                                best_win = win
+                            end
+                        end
+                    end
+                end
+            end
+
+            if best_win then
+                vim.api.nvim_set_current_win(best_win)
+                return true
+            end
+
+            if not silent then
+                vim.notify("No main buffer window available", vim.log.levels.WARN, { title = "Bufferline " })
+            end
+            return false
+        end
+
         local function buffer_is_pinned(bufnr)
             local ok, groups = pcall(require, "bufferline.groups")
             if ok and type(groups._is_pinned) == "function" then
@@ -175,18 +231,8 @@ return {
         for i = 1, 9 do
             local idx = i
             vim.keymap.set("n", tostring(idx), function()
-                local cur = vim.api.nvim_get_current_buf()
-                local excluded, _ = is_excluded(cur)
-                if excluded then
-                    -- jump to first normal window with a non-excluded buffer
-                    for _, win in ipairs(vim.api.nvim_list_wins()) do
-                        local b = vim.api.nvim_win_get_buf(win)
-                        local exc = is_excluded(b)
-                        if not exc then
-                            vim.api.nvim_set_current_win(win)
-                            break
-                        end
-                    end
+                if not focus_main_window(false) then
+                    return
                 end
                 goto_buffer(idx)
             end, { noremap = true, silent = true, nowait = true, desc = "Go to buffer " .. idx })
