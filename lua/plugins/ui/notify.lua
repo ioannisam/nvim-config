@@ -249,7 +249,8 @@ return {
             local type_map = { DEBUG = "N", INFO = "I", WARN = "W", ERROR = "E", TRACE = "N" }
             local icon_map = { DEBUG = "", ERROR = "", INFO = "", TRACE = "✎", WARN = "" }
 
-            for _, notif in ipairs(history) do
+            for i = #history, 1, -1 do
+                local notif = history[i]
                 local raw = notif.level
                 local lvl
                 if type(raw) == "number" then
