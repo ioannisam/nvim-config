@@ -44,6 +44,10 @@ return {
 
         local last_neotree_source = "filesystem"
         local function toggle_last_neotree()
+            local special_windows = require("utils.special_windows")
+            if not special_windows.is_open("neotree") then
+                special_windows.prepare_for_open("neotree")
+            end
             local src = last_neotree_source or "filesystem"
             require("neo-tree.command").execute({ toggle = true, source = src })
         end

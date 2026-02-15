@@ -2,6 +2,8 @@ return {
     "nvim-pack/nvim-spectre",
     dependencies = { "nvim-lua/plenary.nvim" },
     config = function()
+        local special_windows = require("utils.special_windows")
+
         require("spectre").setup({
             color_devicons = true,
             live_update = false,
@@ -105,13 +107,27 @@ return {
                 },
             },
         })
-        vim.keymap.set('n', '<leader>sg', '<cmd>lua require("spectre").toggle()<CR>', {
+        vim.keymap.set('n', '<leader>sg', function()
+            if special_windows.is_open("spectre") then
+                require("spectre").toggle()
+                return
+            end
+            special_windows.prepare_for_open("spectre")
+            require("spectre").toggle()
+        end, {
             desc = "Search Global"
         })
-        vim.keymap.set('n', '<leader>swg', '<cmd>lua require("spectre").open_visual({select_word=true})<CR>', {
+        vim.keymap.set('n', '<leader>swg', function()
+            special_windows.prepare_for_open("spectre")
+            require("spectre").open_visual({ select_word = true })
+        end, {
             desc = "Search current word (global)"
         })
-        vim.keymap.set('v', '<leader>swg', '<esc><cmd>lua require("spectre").open_visual()<CR>', {
+        vim.keymap.set('v', '<leader>swg', function()
+            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", true)
+            special_windows.prepare_for_open("spectre")
+            require("spectre").open_visual()
+        end, {
             desc = "Search current selection (global)"
         })
         vim.keymap.set('n', '<leader>sl', function()
@@ -123,12 +139,20 @@ return {
                 end
             end
 
+            special_windows.prepare_for_open("spectre")
             require("spectre").open_file_search()
         end, { desc = "Search Local (force blank search)" })
-        vim.keymap.set('n', '<leader>swl', '<cmd>lua require("spectre").open_file_search({select_word=true})<CR>', {
+        vim.keymap.set('n', '<leader>swl', function()
+            special_windows.prepare_for_open("spectre")
+            require("spectre").open_file_search({ select_word = true })
+        end, {
             desc = "Search current word (local)"
         })
-        vim.keymap.set('v', '<leader>swl', '<esc><cmd>lua require("spectre").open_file_search()<CR>', {
+        vim.keymap.set('v', '<leader>swl', function()
+            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", true)
+            special_windows.prepare_for_open("spectre")
+            require("spectre").open_file_search()
+        end, {
             desc = "Search current selection (local)"
         })
     end,

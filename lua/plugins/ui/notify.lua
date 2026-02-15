@@ -234,6 +234,7 @@ return {
         end, { desc = "Esc: clear highlights and dismiss notifications" })
 
         vim.keymap.set("n", "<leader>xn", function()
+            local special_windows = require("utils.special_windows")
             local notify = require("notify")
             local history = notify.history()
 
@@ -327,6 +328,7 @@ return {
             end
 
             if not qf_open then
+                special_windows.prepare_for_open("notifications")
                 vim.cmd("copen")
                 vim.schedule(function()
                     vim.cmd("call SetQFSyntax()")

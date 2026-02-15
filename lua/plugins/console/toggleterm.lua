@@ -3,6 +3,7 @@ return {
     version = "*",
     config = function()
         local Terminal = require("toggleterm.terminal").Terminal
+        local special_windows = require("utils.special_windows")
         local next_id = 0
         local terminals = {}
         local term_names = {}
@@ -147,6 +148,7 @@ return {
 
         vim.keymap.set("n", "<leader>tn", function()
             ensure_editor_focus()
+            special_windows.prepare_for_open("toggleterm")
 
             local h_terms = {}
             for _, t in pairs(terminals) do
@@ -196,6 +198,10 @@ return {
                     any_open = true
                     break
                 end
+            end
+
+            if not any_open then
+                special_windows.prepare_for_open("toggleterm")
             end
 
             for _, t in ipairs(h_terms) do
@@ -313,6 +319,7 @@ return {
 
         vim.keymap.set("n", "<leader>tt", function()
             ensure_editor_focus()
+            special_windows.prepare_for_open("toggleterm")
 
             vim.g._creating_native_terminal = true
             vim.cmd("terminal")

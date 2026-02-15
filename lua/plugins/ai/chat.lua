@@ -68,7 +68,28 @@ return {
             },
         },
         keys = {
-            { "<leader>cc", function() require("CopilotChat").toggle() end, desc = "Toggle Copilot Chat" },
+            {
+                "<leader>cc",
+                function()
+                    local special_windows = require("utils.special_windows")
+                    if special_windows.is_open("copilotchat") then
+                        require("CopilotChat").toggle()
+                        return
+                    end
+
+                    local had_neotree = special_windows.is_open("neotree")
+                    special_windows.prepare_for_open("copilotchat")
+
+                    if had_neotree then
+                        vim.cmd("wincmd =")
+                    end
+
+                    vim.schedule(function()
+                        require("CopilotChat").toggle()
+                    end)
+                end,
+                desc = "Toggle Copilot Chat",
+            },
         },
     }
 }
