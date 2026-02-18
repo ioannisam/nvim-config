@@ -53,6 +53,9 @@ return {
 
         telescope.setup({
             defaults = {
+                preview = {
+                    treesitter = false,
+                },
                 sorting_strategy = "ascending",
                 prompt_prefix = " ",
                 selection_caret = "▶ ",
