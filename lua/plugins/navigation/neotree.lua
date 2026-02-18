@@ -693,8 +693,8 @@ return {
             end,
         })
 
-        vim.keymap.set('n', '<leader>n', toggle_last_neotree, { noremap = true, silent = true })
-        vim.keymap.set('n', '<leader>w', '<C-w>w', { noremap = true, silent = true })
+        vim.keymap.set('n', '<leader>n', toggle_last_neotree, { noremap = true, silent = true, desc = "Neotree: Toggle" })
+        vim.keymap.set('n', '<leader>w', '<C-w>w', { noremap = true, silent = true, desc = "Switch Window" })
         vim.diagnostic.config({
             signs = {
                 text = {

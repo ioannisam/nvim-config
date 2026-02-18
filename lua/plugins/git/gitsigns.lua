@@ -41,8 +41,11 @@ return {
             attach_to_untracked = false,
             on_attach = function(bufnr)
 
-                local opts = { buffer = bufnr, noremap = true, silent = true }
-                vim.keymap.set("n", "<leader>gt", function()
+                local map = function(lhs, rhs, desc)
+                    vim.keymap.set("n", lhs, rhs, { buffer = bufnr, noremap = true, silent = true, desc = desc })
+                end
+
+                map("<leader>gt", function()
                     gs.toggle_word_diff()
                     gs.toggle_numhl()
                     gs.toggle_linehl()
@@ -55,13 +58,13 @@ return {
                         vim.wo.signcolumn = "yes"
                         vim.notify("Diff UI OFF", vim.log.levels.INFO, {title = "Gitsigns "})
                     end
-                end, opts)
+                end, "Git: Toggle diff UI")
 
-                vim.keymap.set("n", "<leader>gn", gs.next_hunk, opts)
-                vim.keymap.set("n", "<leader>gp", gs.prev_hunk, opts)
-                vim.keymap.set("n", "<leader>gd", gs.preview_hunk_inline, opts)
+                map("<leader>gn", gs.next_hunk, "Git: Next hunk")
+                map("<leader>gp", gs.prev_hunk, "Git: Previous hunk")
+                map("<leader>gd", gs.preview_hunk_inline, "Git: Preview hunk inline")
 
-                vim.keymap.set("n", "<leader>gD", function()
+                map("<leader>gD", function()
                     gs.preview_hunk()
 
                     vim.defer_fn(function()
@@ -76,9 +79,9 @@ return {
                             end
                         end
                     end, 20)
-                end, opts)
-                vim.keymap.set("n", "<leader>gb", gs.blame_line, opts)
-                vim.keymap.set("n", "<leader>gr", gs.reset_hunk, opts)
+                end, "Git: Preview hunk window")
+                map("<leader>gb", gs.blame_line, "Git: Blame line")
+                map("<leader>gr", gs.reset_hunk, "Git: Reset hunk")
             end,
         })
     end,

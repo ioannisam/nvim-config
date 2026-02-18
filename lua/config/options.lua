@@ -54,4 +54,4 @@ opt.splitbelow = true
 
 opt.shortmess:append("I") -- no intro message
 
-vim.keymap.set("n", "<leader>a", "ggVG", { desc = "Select all buffer contents" })
+vim.keymap.set("n", "<leader>a", "ggVG", { desc = "Select All" })

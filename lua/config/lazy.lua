@@ -31,11 +31,11 @@ require("lazy").setup({
     checker = { enabled = true },
 })
 
-vim.keymap.set("n", "<leader>lt", "<cmd>Lazy<cr>", { desc = "Toggle Lazy" })
-vim.keymap.set("n", "<leader>lu", "<cmd>Lazy update<cr>", { desc = "Toggle Lazy" })
+vim.keymap.set("n", "<leader>lt", "<cmd>Lazy<cr>", { desc = "Lazy: Open UI" })
+vim.keymap.set("n", "<leader>lu", "<cmd>Lazy update<cr>", { desc = "Lazy: Update plugins" })
 vim.api.nvim_create_autocmd("FileType", {
     pattern = "lazy",
     callback = function(event)
-        vim.keymap.set("n", "<Esc>", "<cmd>q<cr>", { buffer = event.buf, silent = true })
+        vim.keymap.set("n", "<Esc>", "<cmd>q<cr>", { buffer = event.buf, silent = true, desc = "Lazy: Close" })
     end,
 })

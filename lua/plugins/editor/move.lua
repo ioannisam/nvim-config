@@ -6,11 +6,11 @@ return {
     end,
     config = function()
         -- Normal Mode
-        vim.keymap.set("n", "J", "<Plug>MoveLineDown", {})
-        vim.keymap.set("n", "K", "<Plug>MoveLineUp", {})
+        vim.keymap.set("n", "J", "<Plug>MoveLineDown", { desc = "Move: Line down" })
+        vim.keymap.set("n", "K", "<Plug>MoveLineUp", { desc = "Move: Line up" })
 
         -- Visual Mode
-        vim.keymap.set("v", "J", "<Plug>MoveBlockDown", {})
-        vim.keymap.set("v", "K", "<Plug>MoveBlockUp", {})
+        vim.keymap.set("v", "J", "<Plug>MoveBlockDown", { desc = "Move: Selection down" })
+        vim.keymap.set("v", "K", "<Plug>MoveBlockUp", { desc = "Move: Selection up" })
     end,
 }

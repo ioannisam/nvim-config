@@ -29,22 +29,22 @@ return {
                     navic.attach(client, bufnr)
                 end
 
-                local bufmap = function(mode, lhs, rhs)
-                    vim.keymap.set(mode, lhs, rhs, { buffer = bufnr })
+                local bufmap = function(mode, lhs, rhs, desc)
+                    vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc })
                 end
 
-                bufmap("n", "gd", vim.lsp.buf.definition)
-                bufmap("n", "qi", vim.lsp.buf.hover)
-                bufmap("n", "<leader>rn", vim.lsp.buf.rename)
-                bufmap("n", "<leader>ca", vim.lsp.buf.code_action)
-                bufmap("n", "gr", vim.lsp.buf.references)
+                bufmap("n", "gd", vim.lsp.buf.definition, "LSP: Go to definition")
+                bufmap("n", "qi", vim.lsp.buf.hover, "LSP: Hover documentation")
+                bufmap("n", "<leader>lr", vim.lsp.buf.rename, "LSP: Rename symbol")
+                bufmap("n", "<leader>la", vim.lsp.buf.code_action, "LSP: Code actions")
+                bufmap("n", "gr", vim.lsp.buf.references, "LSP: List references")
 
                 bufmap("n", "<leader>lf", function()
                     vim.lsp.buf.format({
                         async = true,
                         bufnr = bufnr,
                     })
-                end)
+                end, "LSP: Format buffer")
 
                 vim.diagnostic.config({
                     update_in_insert = false,
@@ -105,9 +105,9 @@ return {
                 vim.lsp.enable(server)
             end
 
-            vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float)
-            vim.keymap.set("n", "pd", vim.diagnostic.goto_prev)
-            vim.keymap.set("n", "nd", vim.diagnostic.goto_next)
+            vim.keymap.set("n", "<leader>le", vim.diagnostic.open_float, { desc = "Diagnostics: Open float" })
+            vim.keymap.set("n", "pd", vim.diagnostic.goto_prev, { desc = "Diagnostics: Previous" })
+            vim.keymap.set("n", "nd", vim.diagnostic.goto_next, { desc = "Diagnostics: Next" })
         end,
     },
 }
