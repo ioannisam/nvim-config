@@ -27,7 +27,7 @@ return {
         win = {
             no_overlap = true,
             -- width = 1,
-            height = { min = 6, max = 12 },
+            height = { min = 4, max = math.huge },
             -- col = 0,
             -- row = math.huge,
             -- border = "none",
@@ -43,7 +43,7 @@ return {
         },
         layout = {
             align = "left",
-            height = { min = 4, max = 4 },
+            height = { min = 4, max = math.huge },
             width = { min = 14, max = 28 },
             spacing = 1, -- spacing between columns
         },
@@ -51,7 +51,7 @@ return {
             scroll_down = "<c-d>",
             scroll_up = "<c-u>",
         },
-        sort = { "local", "order", "group", "alphanum", "mod" },
+        sort = { "manual", "local", "group", "mod" },
         expand = 0,
         -- expand = function(node)
         --   return not node.desc -- expand all nodes without a description
@@ -81,7 +81,7 @@ return {
             group = "",
             ellipsis = "…",
             mappings = true,
-            rules = {},
+            rules = false,
             colors = true,
             keys = {
                 Up = " ",
@@ -201,23 +201,26 @@ return {
             end
 
             wk.add({
-                { "<leader>b", group = group_with_count("Buffers", "b"), icon = "" },
-                { "<leader>c", group = group_with_count("Code / Checklist", "c"), icon = "󰌵" },
-                { "<leader>d", group = group_with_count("Debug", "d"), icon = "" },
-                { "<leader>f", group = group_with_count("Telescope", "f"), icon = "" },
-                { "<leader>g", group = group_with_count("Git", "g"), icon = "" },
-                { "<leader>h", group = group_with_count("Harpoon", "h"), icon = "󰛢" },
-                { "<leader>l", group = group_with_count("LSP / Lazy", "l"), icon = "" },
-                { "<leader>m", group = group_with_count("Menu / Markdown", "m"), icon = "󰘳" },
-                { "<leader>n", group = group_with_count("Neotree", "n"), icon = "󰹩" },
-                { "<leader>s", group = group_with_count("Search", "s"), icon = "" },
-                { "<leader>sw", group = group_with_count("Search Word / Selection", "sw"), icon = "" },
-                { "<leader>t", group = group_with_count("Terminal", "t"), icon = "" },
-                { "<leader>v", group = group_with_count("Visual / Multi-cursor", "v"), icon = "󱢓" },
-                { "<leader>w", group = group_with_count("Switch Window", "w"), icon = "" },
-                { "<leader>x", group = group_with_count("Diagnostics / Notify", "x"), icon = "" },
-                { "<leader>a", desc = "Select All", icon = "󰢤" },
-                { "<leader>u", desc = "Toggle UndoTree", icon = "󰣜" },
+                { "<leader>a", desc = "Select All", icon = "󰢤", order = 1 },
+                { "<leader>w", desc = "Switch Window", icon = "", order = 2 },
+                { "<leader>n", group = group_with_count("Neotree", "n"), icon = "󰹩", order = 3 },
+                { "<leader>u", desc = "Toggle UndoTree", icon = "󰣜", order = 4 },
+
+                { "<leader>b", group = group_with_count("Buffers", "b"), icon = "", order = 5 },
+                { "<leader>h", group = group_with_count("Harpoon", "h"), icon = "󰛢", order = 6 },
+                { "<leader>t", group = group_with_count("Terminal", "t"), icon = "", order = 7 },
+                { "<leader>m", group = group_with_count("Menu/Markdown", "m"), icon = "󰘳", order = 8 },
+
+                { "<leader>g", group = group_with_count("Git", "g"), icon = "", order = 9 },
+                { "<leader>d", group = group_with_count("Debug", "d"), icon = "", order = 10 },
+                { "<leader>x", group = group_with_count("Diagnostics", "x"), icon = "", order = 11 },
+                { "<leader>l", group = group_with_count("LSP/Lazy", "l"), icon = "", order = 12 },
+
+                { "<leader>f", group = group_with_count("Telescope", "f"), icon = "", order = 13 },
+                { "<leader>s", group = group_with_count("Search", "s"), icon = "", order = 14 },
+                { "<leader>sw", group = group_with_count("Search Word / Selection", "sw"), icon = "", order = 15 },
+                { "<leader>v", group = group_with_count("Multi-cursor", "v"), icon = "󱢓", order = 16 },
+                { "<leader>c", group = group_with_count("Chat", "c"), icon = "󰌵", order = 17 },
             })
         end
 
