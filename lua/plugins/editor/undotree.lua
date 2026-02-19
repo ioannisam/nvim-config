@@ -13,7 +13,6 @@ return {
                 vim.cmd("UndotreeToggle")
             end,
             desc = "Toggle UndoTree",
-            icon = "󰣜",
         },
     },
     config = function()
