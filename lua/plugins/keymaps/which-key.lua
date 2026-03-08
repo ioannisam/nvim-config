@@ -4,8 +4,7 @@ return {
     opts = {
         preset = "modern",
         triggers = {
-            "<auto>",
-            mode = "nixsotc",
+            { "<auto>", mode = "nxso" },
         },
         plugins = {
             marks = true,
@@ -25,13 +24,13 @@ return {
             },
         },
         win = {
-            no_overlap = true,
-            -- width = 1,
-            height = { min = 4, max = math.huge },
+            -- no_overlap = false, -- only works for classic preset
+            width = { min = 4, max = 150},
+            height = { min = 1, max = 25},
             -- col = 0,
             -- row = math.huge,
             -- border = "none",
-            padding = { 0, 1 }, -- [top/bottom, right/left]
+            padding = { 1, 1 }, -- [top/bottom, right/left]
             title = true,
             title_pos = "center",
             zindex = 1000,
@@ -42,10 +41,9 @@ return {
             },
         },
         layout = {
-            align = "left",
-            height = { min = 4, max = math.huge },
-            width = { min = 14, max = 28 },
-            spacing = 1, -- spacing between columns
+            width = { min = 10, max = 50 },
+            -- height = { min = 4, max = math.huge },
+            spacing = 3, -- spacing between columns
         },
         keys = {
             scroll_down = "<c-d>",
@@ -126,12 +124,12 @@ return {
         local wk = require("which-key")
         wk.setup(opts)
 
+        -- Your original counting logic
         local function count_leader_maps(prefix)
             local leader = vim.g.mapleader or "\\"
             local count = 0
             local seen = {}
-            
-            -- Build all possible prefix variations
+
             local prefixes = {}
             if leader == " " then
                 table.insert(prefixes, " " .. prefix)
@@ -142,12 +140,8 @@ return {
             else
                 table.insert(prefixes, leader .. prefix)
             end
-            
-            -- Count from which-key's own registry (includes lazy-loaded)
-            local ok, wk_registry = pcall(function()
-                return require("which-key.state").get()
-            end)
-            
+
+            local ok, wk_registry = pcall(function() return require("which-key.state").get() end)
             if ok and wk_registry and wk_registry.mappings then
                 for _, mapping in ipairs(wk_registry.mappings or {}) do
                     local lhs = mapping.lhs or (mapping[1] and mapping[1].lhs)
@@ -162,8 +156,7 @@ return {
                     end
                 end
             end
-            
-            -- Fallback: scan registered keymaps
+
             local function scan(maps)
                 for _, map in ipairs(maps) do
                     if map.lhs and type(map.lhs) == "string" and not seen[map.lhs] then
@@ -177,67 +170,49 @@ return {
                     end
                 end
             end
-            
+
             pcall(function() scan(vim.api.nvim_get_keymap("n")) end)
             pcall(function() scan(vim.api.nvim_buf_get_keymap(0, "n")) end)
-            
-            -- Also scan all buffers for buffer-local maps (like gitsigns)
+
             for _, buf in ipairs(vim.api.nvim_list_bufs()) do
                 if vim.api.nvim_buf_is_loaded(buf) then
                     pcall(function() scan(vim.api.nvim_buf_get_keymap(buf, "n")) end)
                 end
             end
-            
+
             return count
         end
 
-        local function register_groups()
-            local function group_with_count(name, prefix)
+        -- Factory function that returns a dynamic string function for WhichKey
+        local function dynamic_group(name, prefix)
+            return function()
                 local count = count_leader_maps(prefix)
-                if count == 0 then
-                    return name
-                end
+                if count == 0 then return name end
                 return string.format("%s (+%d)", name, count)
             end
-
-            wk.add({
-                { "<leader>a", desc = "Select All", icon = "󰢤" },
-                { "<leader>w", desc = "Switch Window", icon = "" },
-                { "<leader>n", group = group_with_count("Neotree", "n"), icon = "󰹩" },
-                { "<leader>u", desc = "Toggle UndoTree", icon = "󰣜" },
-
-                { "<leader>b", group = group_with_count("Buffers", "b"), icon = "" },
-                { "<leader>h", group = group_with_count("Harpoon", "h"), icon = "󰛢" },
-                { "<leader>t", group = group_with_count("Terminal", "t"), icon = "" },
-                { "<leader>m", group = group_with_count("Menu/Markdown", "m"), icon = "󰘳" },
-
-                { "<leader>g", group = group_with_count("Git", "g"), icon = "" },
-                { "<leader>d", group = group_with_count("Debug", "d"), icon = "" },
-                { "<leader>x", group = group_with_count("Diagnostics", "x"), icon = "" },
-                { "<leader>l", group = group_with_count("LSP/Lazy", "l"), icon = "" },
-
-                { "<leader>f", group = group_with_count("Telescope", "f"), icon = "" },
-                { "<leader>s", group = group_with_count("Search", "s"), icon = "" },
-                { "<leader>sw", group = group_with_count("Search Word / Selection", "sw"), icon = "" },
-                { "<leader>v", group = group_with_count("Multi-cursor", "v"), icon = "󱢓" },
-                { "<leader>c", group = group_with_count("Chat", "c"), icon = "󰌵" },
-            })
         end
 
-        vim.schedule(register_groups)
-        vim.api.nvim_create_autocmd({ "BufEnter", "LspAttach" }, {
-            callback = function()
-                vim.schedule(register_groups)
-                vim.defer_fn(register_groups, 80)
-                vim.defer_fn(register_groups, 220)
-            end,
-        })
-        vim.api.nvim_create_autocmd("User", {
-            pattern = { "LazyLoad", "LazyDone", "GitsignsAttach" },
-            callback = function()
-                vim.schedule(register_groups)
-                vim.defer_fn(register_groups, 80)
-            end,
+        wk.add({
+            { "<leader>a", desc = "Select All", icon = "󰢤" },
+            { "<leader>w", desc = "Switch Window", icon = "" },
+            { "<leader>n", group = dynamic_group("Neotree", "n"), icon = "󰹩" },
+            { "<leader>u", desc = "Toggle UndoTree", icon = "󰣜" },
+
+            { "<leader>b", group = dynamic_group("Buffers", "b"), icon = "" },
+            { "<leader>h", group = dynamic_group("Harpoon", "h"), icon = "󰛢" },
+            { "<leader>t", group = dynamic_group("Terminal", "t"), icon = "" },
+            { "<leader>m", group = dynamic_group("Menu/Markdown", "m"), icon = "󰘳" },
+
+            { "<leader>g", group = dynamic_group("Git", "g"), icon = "" },
+            { "<leader>d", group = dynamic_group("Debug", "d"), icon = "" },
+            { "<leader>x", group = dynamic_group("Diagnostics", "x"), icon = "" },
+            { "<leader>l", group = dynamic_group("LSP/Lazy", "l"), icon = "" },
+
+            { "<leader>f", group = dynamic_group("Telescope", "f"), icon = "" },
+            { "<leader>s", group = dynamic_group("Search", "s"), icon = "" },
+            { "<leader>sw", group = dynamic_group("Search Word / Selection", "sw"), icon = "" },
+            { "<leader>v", group = dynamic_group("Multi-cursor", "v"), icon = "󱢓" },
+            { "<leader>c", group = dynamic_group("Chat", "c"), icon = "󰌵" },
         })
     end,
 }
