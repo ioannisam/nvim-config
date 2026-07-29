@@ -45,23 +45,24 @@ return {
                     vim.keymap.set("n", lhs, rhs, { buffer = bufnr, noremap = true, silent = true, desc = desc })
                 end
 
+                local diff_ui = false
                 map("<leader>gt", function()
-                    gs.toggle_word_diff()
-                    gs.toggle_numhl()
-                    gs.toggle_linehl()
+                    diff_ui = not diff_ui
 
-                    local current = vim.wo.signcolumn
-                    if current == "yes" then
-                        vim.wo.signcolumn = "no"
-                        vim.notify("Diff UI ON", vim.log.levels.INFO, {title = "Gitsigns "})
-                    else
-                        vim.wo.signcolumn = "yes"
-                        vim.notify("Diff UI OFF", vim.log.levels.INFO, {title = "Gitsigns "})
-                    end
+                    gs.toggle_word_diff(diff_ui)
+                    gs.toggle_numhl(diff_ui)
+                    gs.toggle_linehl(diff_ui)
+                    vim.wo.signcolumn = diff_ui and "no" or "yes"
+
+                    vim.notify(
+                        diff_ui and "Diff UI ON" or "Diff UI OFF",
+                        vim.log.levels.INFO,
+                        {title = "Gitsigns "}
+                    )
                 end, "Git: Toggle diff UI")
 
-                map("<leader>gn", gs.next_hunk, "Git: Next hunk")
-                map("<leader>gp", gs.prev_hunk, "Git: Previous hunk")
+                map("<leader>gn", function() gs.nav_hunk("next") end, "Git: Next hunk")
+                map("<leader>gp", function() gs.nav_hunk("prev") end, "Git: Previous hunk")
                 map("<leader>gd", gs.preview_hunk_inline, "Git: Preview hunk inline")
 
                 map("<leader>gD", function()
