@@ -230,12 +230,19 @@ return {
 
         for i = 1, 9 do
             local idx = i
-            vim.keymap.set("n", tostring(idx), function()
+            local function jump()
                 if not focus_main_window(false) then
                     return
                 end
                 goto_buffer(idx)
-            end, { noremap = true, silent = true, nowait = true, desc = "Go to buffer " .. idx })
+            end
+            for _, lhs in ipairs({ "<A-" .. idx .. ">", "<leader>" .. idx }) do
+                vim.keymap.set("n", lhs, jump, {
+                    noremap = true,
+                    silent = true,
+                    desc = "Go to buffer " .. idx,
+                })
+            end
         end
 
         vim.keymap.set("n", "<leader>bd", function()
@@ -377,7 +384,14 @@ return {
             local mp = vim.fn.getmousepos()
             if mp.screenrow == 1 then
                 new_file_dialog()
+                return
             end
+            
+            vim.api.nvim_feedkeys(
+                vim.api.nvim_replace_termcodes("<2-LeftMouse>", true, false, true),
+                "n",
+                false
+            )
         end, { desc = "New buffer on double-click bufferline (centered input)" })
     end,
 }
