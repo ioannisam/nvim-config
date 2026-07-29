@@ -18,12 +18,7 @@ return {
             if name == "" then
                 return false
             end
-            local ok, buftype = pcall(vim.api.nvim_buf_get_option, buf, "buftype")
-            local ok2, buflisted = pcall(vim.api.nvim_buf_get_option, buf, "buflisted")
-            if not ok or not ok2 then
-                return false
-            end
-            return buflisted and buftype == ""
+            return vim.bo[buf].buflisted and vim.bo[buf].buftype == ""
         end
 
         local function has_real_buffers()
@@ -38,35 +33,22 @@ return {
         vim.api.nvim_create_autocmd("User", {
             pattern = "PersistenceSavePre",
             callback = function()
-                local unlisted = {}
                 for _, buf in ipairs(vim.api.nvim_list_bufs()) do
                     if not is_real_file(buf) then
-                        local ft = (pcall(vim.api.nvim_buf_get_option, buf, "filetype") and vim.bo[buf].filetype) or ""
+                        local ft = vim.bo[buf].filetype or ""
                         local name = vim.api.nvim_buf_get_name(buf)
                         if ft == "undotree" or name:match("__Undotree__") or name:match("^undotree_") then
                             pcall(vim.api.nvim_buf_delete, buf, { force = true })
                         end
                     end
                 end
-                vim.g._persistence_unlisted_restore = unlisted
             end,
         })
 
         vim.api.nvim_create_autocmd("User", {
             pattern = "PersistenceSavePost",
             callback = function()
-                local list = vim.g._persistence_unlisted_restore or {}
-                for _, buf in ipairs(list) do
-                    if vim.api.nvim_buf_is_valid(buf) then
-                        vim.bo[buf].buflisted = true
-                    end
-                end
-                vim.g._persistence_unlisted_restore = nil
-
-                local session_dir = opts.dir
-                local cwd = vim.fn.getcwd()
-                local encoded = cwd:gsub(":", "%%"):gsub("/", "%%")
-                local session_file = session_dir .. encoded .. ".vim"
+                local session_file = require("persistence").current()
 
                 if vim.fn.filereadable(session_file) == 1 and not has_real_buffers() then
                     vim.fn.delete(session_file)

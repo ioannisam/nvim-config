@@ -30,16 +30,15 @@ return {
         vim.api.nvim_create_user_command("AlphaRestoreSession", function()
             require("lazy").load({ plugins = { "persistence.nvim" } })
 
+            local persistence = require("persistence")
             local cwd = vim.fn.getcwd()
-            local encoded = cwd:gsub(":", "%%"):gsub("/", "%%")
-            local session_path = vim.fn.stdpath("state") .. "/sessions/" .. encoded .. ".vim"
+            local session_path = persistence.current()
 
             if vim.fn.filereadable(session_path) == 1 and vim.fn.getfsize(session_path) > 0 then
-                require("persistence").load()
+                persistence.load()
                 vim.notify("Restored session: " .. cwd, vim.log.levels.INFO, {title = "Alpha 󰯫"})
             else
-                local session_dir = vim.fn.stdpath("state") .. "/sessions/"
-                local sessions = vim.fn.globpath(session_dir, "*.vim", false, true)
+                local sessions = persistence.list()
                 if #sessions == 0 then
                     vim.notify("No sessions found!", vim.log.levels.INFO, { title = "Alpha 󰯫" })
                 else
