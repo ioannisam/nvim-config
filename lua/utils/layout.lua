@@ -5,15 +5,28 @@ local function tab_wins()
     return vim.api.nvim_tabpage_list_wins(0)
 end
 
+local function win_buf(win)
+    if not vim.api.nvim_win_is_valid(win) then
+        return nil
+    end
+    local buf = vim.api.nvim_win_get_buf(win)
+    if not vim.api.nvim_buf_is_valid(buf) then
+        return nil
+    end
+    return buf
+end
+
+local function is_floating(win)
+    local ok, cfg = pcall(vim.api.nvim_win_get_config, win)
+    return ok and cfg and cfg.relative and cfg.relative ~= ""
+end
+
 -- Return Neo-tree window id (if any) in current tab
 function M.get_neotree_win()
     for _, win in ipairs(tab_wins()) do
-        if vim.api.nvim_win_is_valid(win) then
-            local buf = vim.api.nvim_win_get_buf(win)
-            local ok, ft = pcall(vim.api.nvim_buf_get_option, buf, "filetype")
-            if ok and ft == "neo-tree" then
-                return win
-            end
+        local buf = win_buf(win)
+        if buf and vim.bo[buf].filetype == "neo-tree" then
+            return win
         end
     end
     return nil
@@ -23,54 +36,68 @@ end
 function M.get_toggleterm_wins()
     local wins = {}
     for _, win in ipairs(tab_wins()) do
-        if vim.api.nvim_win_is_valid(win) then
-            local buf = vim.api.nvim_win_get_buf(win)
-            local ok_ft, ft = pcall(vim.api.nvim_buf_get_option, buf, "filetype")
-            local ok_bt, bt = pcall(vim.api.nvim_buf_get_option, buf, "buftype")
-
-            local is_toggleterm = false
-            pcall(function() is_toggleterm = vim.b[buf].is_toggleterm == true end)
-            local dir = nil
-            pcall(function() dir = vim.b[buf].toggleterm_direction end)
-            local is_native = false
-            pcall(function() is_native = vim.b[buf].native_term == true end)
-
-            -- skip floating windows
-            local ok_cfg, cfg = pcall(vim.api.nvim_win_get_config, win)
-            if ok_cfg and cfg and cfg.relative and cfg.relative ~= "" then goto continue end
+        local buf = win_buf(win)
+        if buf and not is_floating(win) then
+            local bt = vim.bo[buf].buftype
+            local is_toggleterm = vim.b[buf].is_toggleterm == true
+            local dir = vim.b[buf].toggleterm_direction
+            local is_native = vim.b[buf].native_term == true
 
             if (is_toggleterm and dir == "horizontal") or (is_native and bt == "terminal") then
                 table.insert(wins, win)
             end
         end
-        ::continue::
     end
     return wins
 end
 
--- Return the best non-Neo-tree editor window in current tab (largest width).
--- This is used as the "main" editor column to host terminals.
+local function is_terminal_win(win)
+    local buf = win_buf(win)
+    if not buf then
+        return false
+    end
+    return vim.b[buf].is_toggleterm == true
+        or (vim.b[buf].native_term == true and vim.bo[buf].buftype == "terminal")
+end
+
+-- Return the best editor window in current tab (largest width), ignoring
+-- Neo-tree and terminals so a full-width terminal cannot be mistaken for it.
 function M.get_main_win()
     local neotree_win = M.get_neotree_win()
     local best = nil
     local best_w = -1
     for _, win in ipairs(tab_wins()) do
-        if vim.api.nvim_win_is_valid(win) and win ~= neotree_win then
-            local buf = vim.api.nvim_win_get_buf(win)
-            local ok_cfg, cfg = pcall(vim.api.nvim_win_get_config, win)
-            if ok_cfg and cfg and cfg.relative and cfg.relative ~= "" then goto cont end
-            local ok_ft, ft = pcall(vim.api.nvim_buf_get_option, buf, "filetype")
-            if ok_ft and ft == "neo-tree" then goto cont end
-
+        local buf = win ~= neotree_win and win_buf(win) or nil
+        if buf and not is_floating(win) and vim.bo[buf].filetype ~= "neo-tree" and not is_terminal_win(win) then
             local w = vim.api.nvim_win_get_width(win)
             if w > best_w then
                 best_w = w
                 best = win
             end
         end
-        ::cont::
     end
     return best
+end
+
+function M.confine_terminals_to_main()
+    if not M.get_neotree_win() then
+        return
+    end
+
+    local main = M.get_main_win()
+    if not main or not vim.api.nvim_win_is_valid(main) then
+        return
+    end
+
+    for _, win in ipairs(M.get_toggleterm_wins()) do
+        if
+            win ~= main
+            and vim.api.nvim_win_is_valid(win)
+            and vim.api.nvim_win_get_width(win) >= vim.o.columns
+        then
+            pcall(vim.fn.win_splitmove, win, main, { vertical = false, rightbelow = true })
+        end
+    end
 end
 
 -- Reflow: keep Neo-tree width and distribute remaining cols to terminal windows
@@ -86,7 +113,8 @@ function M.reflow_layout()
         if ok and type(w) == "number" then neotree_width = w end
     end
 
-    local remaining_cols = math.max(total_cols - neotree_width, 1)
+    local separator = neotree_width > 0 and 1 or 0
+    local remaining_cols = math.max(total_cols - neotree_width - separator, 1)
 
     if term_count > 0 then
         -- Explicitly resize the main editor column only when terminals are present,
@@ -109,25 +137,16 @@ function M.defer_reflow(delay)
     vim.defer_fn(M.reflow_layout, delay or 30)
 end
 
-function M.reflow_neotree()
-    local neotree_win = M.get_neotree_win()
-    if not neotree_win or not vim.api.nvim_win_is_valid(neotree_win) then
+function M.refresh_neotree_buffers()
+    if not M.get_neotree_win() then
         return
     end
-
-    -- Remember current win to restore focus
-    local current_win = vim.api.nvim_get_current_win()
-
-    -- Toggle twice to force Neo-tree to reflow its layout
-    vim.cmd("Neotree toggle")
-    vim.cmd("Neotree toggle")
-
-    -- Restore focus after Neo-tree redraws
-    vim.defer_fn(function()
-        if vim.api.nvim_win_is_valid(current_win) then
-            vim.api.nvim_set_current_win(current_win)
+    vim.schedule(function()
+        local ok, manager = pcall(require, "neo-tree.sources.manager")
+        if ok then
+            pcall(manager.refresh, "buffers")
         end
-    end, 30)
+    end)
 end
 
 return M

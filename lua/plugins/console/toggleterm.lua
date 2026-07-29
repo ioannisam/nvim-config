@@ -41,7 +41,7 @@ return {
             if term.window and vim.api.nvim_win_is_valid(term.window) then
                 local name = term_names[term.id] or ("Terminal #" .. term.id)
                 local fmt = string.format("%%#WinBarTerm#  %s (ID:%d)", name, term.id)
-                vim.api.nvim_win_set_option(term.window, "winbar", fmt)
+                vim.api.nvim_set_option_value("winbar", fmt, { win = term.window })
             end
         end
 
@@ -72,6 +72,7 @@ return {
         local function cleanup(id)
             terminals[id] = nil
             term_names[id] = nil
+            require("utils.layout").refresh_neotree_buffers()
         end
 
         local layout = require("utils.layout")
@@ -81,47 +82,26 @@ return {
             end,
 
             on_open = function(term)
-                local layout = require("utils.layout")
-
                 if term and term.bufnr then
                     vim.b[term.bufnr].is_toggleterm = true
                     vim.b[term.bufnr].toggleterm_direction = term.direction
                     vim.b[term.bufnr].toggleterm_id = term.id
                 end
 
-                vim.defer_fn(function()
+                vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<Esc>", "<C-\\><C-n>", { noremap = true, silent = true })
+
+                layout.confine_terminals_to_main()
+
+                vim.schedule(function()
                     local win = get_term_window_by_bufnr(term.bufnr)
                     if win and vim.api.nvim_win_is_valid(win) then
                         term.window = win
                         vim.api.nvim_set_hl(0, "WinBarTerm", { fg = "#a3be8c", bold = true })
                         refresh_winbar(term)
-
-                        -- ✅ Keep your resizing logic (this fixes layout consistency)
-                        layout.defer_reflow(50)
                     end
-                end, 30) -- delay to ensure buffer is placed in window
-
-                vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<Esc>", "<C-\\><C-n>", { noremap = true, silent = true })
-                vim.defer_fn(function()
+                    layout.confine_terminals_to_main()
                     vim.cmd("stopinsert")
-                end, 20)
-
-                -- ✅ Extra: refresh Neo-tree layout if it’s open (prevents full-width terminal issue)
-                vim.defer_fn(function()
-                    local neotree_buf = vim.fn.bufnr("neo-tree")
-                    local neotree_win = (neotree_buf ~= -1) and vim.fn.bufwinnr(neotree_buf) or -1
-
-                    if neotree_win ~= -1 then
-                        local current_win = vim.api.nvim_get_current_win()
-                        vim.cmd("Neotree toggle")
-                        vim.cmd("Neotree toggle")
-                        vim.defer_fn(function()
-                            if vim.api.nvim_win_is_valid(current_win) then
-                                vim.api.nvim_set_current_win(current_win)
-                            end
-                        end, 30)
-                    end
-                end, 100)
+                end)
             end,
             on_exit = function(term)
                 if term and term.bufnr then
@@ -321,14 +301,12 @@ return {
             ensure_editor_focus()
             special_windows.prepare_for_open("toggleterm")
 
-            vim.g._creating_native_terminal = true
             vim.cmd("terminal")
-            vim.g._creating_native_terminal = false
 
             local bufnr = vim.api.nvim_get_current_buf()
             vim.b[bufnr].native_term = true
 
-            vim.api.nvim_feedkeys("i", "n", false)
+            layout.refresh_neotree_buffers()
         end, { desc = "Open native terminal", noremap = true, silent = true })
 
         vim.api.nvim_create_autocmd("TermEnter", {
