@@ -20,11 +20,13 @@ function M.search_visual_selection()
     local lines = vim.api.nvim_buf_get_lines(0, start_row - 1, end_row, false)
     if vim.tbl_isempty(lines) then return end
 
-    if #lines == 1 then
-        lines[1] = string.sub(lines[1], start_col + 1, end_col + 1)
-    else
-        lines[1] = string.sub(lines[1], start_col + 1)
-        lines[#lines] = string.sub(lines[#lines], 1, end_col + 1)
+    if mode ~= 'V' then
+        if #lines == 1 then
+            lines[1] = string.sub(lines[1], start_col + 1, end_col + 1)
+        else
+            lines[1] = string.sub(lines[1], start_col + 1)
+            lines[#lines] = string.sub(lines[#lines], 1, end_col + 1)
+        end
     end
 
     local search_text = table.concat(lines, "\n")
