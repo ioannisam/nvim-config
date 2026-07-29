@@ -41,6 +41,8 @@ opt.autoindent = true
 opt.backup = false
 opt.swapfile = false
 opt.undofile = true
+opt.undodir = vim.fn.stdpath("state") .. "/undo//"
+vim.fn.mkdir(vim.fn.stdpath("state") .. "/undo", "p")
 
 -- Searching
 opt.ignorecase = true
@@ -53,5 +55,18 @@ opt.splitright = true
 opt.splitbelow = true
 
 opt.shortmess:append("I") -- no intro message
+
+-- Diagnostics
+vim.diagnostic.config({
+    update_in_insert = false,
+    signs = {
+        text = {
+            [vim.diagnostic.severity.ERROR] = '',
+            [vim.diagnostic.severity.WARN] = '',
+            [vim.diagnostic.severity.INFO] = '',
+            [vim.diagnostic.severity.HINT] = '󰌵',
+        },
+    }
+})
 
 vim.keymap.set("n", "<leader>a", "ggVG", { desc = "Select All" })
