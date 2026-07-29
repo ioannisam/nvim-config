@@ -1,6 +1,7 @@
 return {
     {
-        "williamboman/mason-lspconfig.nvim",
+        "mason-org/mason-lspconfig.nvim",
+        dependencies = { "mason-org/mason.nvim", "neovim/nvim-lspconfig" },
         opts = {
             ensure_installed = {
                 "vimls",
@@ -45,10 +46,6 @@ return {
                         bufnr = bufnr,
                     })
                 end, "LSP: Format buffer")
-
-                vim.diagnostic.config({
-                    update_in_insert = false,
-                })
             end
 
             local servers = {
@@ -106,8 +103,8 @@ return {
             end
 
             vim.keymap.set("n", "<leader>le", vim.diagnostic.open_float, { desc = "Diagnostics: Open float" })
-            vim.keymap.set("n", "pd", vim.diagnostic.goto_prev, { desc = "Diagnostics: Previous" })
-            vim.keymap.set("n", "nd", vim.diagnostic.goto_next, { desc = "Diagnostics: Next" })
+            vim.keymap.set("n", "pd", function() vim.diagnostic.jump({ count = -1, float = true }) end, { desc = "Diagnostics: Previous" })
+            vim.keymap.set("n", "nd", function() vim.diagnostic.jump({ count = 1, float = true }) end, { desc = "Diagnostics: Next" })
         end,
     },
 }

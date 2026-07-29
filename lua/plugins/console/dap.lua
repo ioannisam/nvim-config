@@ -3,7 +3,7 @@ return {
         "jay-babu/mason-nvim-dap.nvim",
         dependencies = {
             "mfussenegger/nvim-dap",
-            "williamboman/mason.nvim",
+            "mason-org/mason.nvim",
         },
         config = function()
             require("mason-nvim-dap").setup({
@@ -18,7 +18,7 @@ return {
         dependencies = {
             "mfussenegger/nvim-dap",
             "nvim-neotest/nvim-nio",
-            "williamboman/mason.nvim",
+            "mason-org/mason.nvim",
             "jay-babu/mason-nvim-dap.nvim",
         },
         config = function()
