@@ -3,7 +3,7 @@ return {
 	branch = "harpoon2",
 	dependencies = {
 		"nvim-lua/plenary.nvim",
-        "kyazdani42/nvim-web-devicons",
+		"nvim-tree/nvim-web-devicons",
 		"nvim-telescope/telescope.nvim",
 		"rcarriga/nvim-notify",
 	},
@@ -15,7 +15,7 @@ return {
 				save_on_toggle = true,
 				sync_on_ui_close = true,
 				key = function()
-					return vim.loop.cwd()
+					return vim.uv.cwd()
 				end,
 			},
 		})
@@ -73,16 +73,20 @@ return {
 
                         actions.close(prompt_bufnr)
 
+                        if #selections == 0 and not current_entry then
+                            return
+                        end
+
                         local selected_files = {}
                         if #selections > 0 then
                             local found = false
                             for _, entry in ipairs(selections) do
                                 table.insert(selected_files, entry.value)
-                                if entry.value == current_entry.value then
+                                if current_entry and entry.value == current_entry.value then
                                     found = true
                                 end
                             end
-                            if not found then
+                            if not found and current_entry then
                                 table.insert(selected_files, current_entry.value)
                             end
                         else
@@ -90,7 +94,7 @@ return {
                         end
 
                         for _, file in ipairs(selected_files) do
-                            vim.cmd("edit " .. file)
+                            vim.cmd("edit " .. vim.fn.fnameescape(file))
                         end
                     end)
 

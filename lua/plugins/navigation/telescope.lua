@@ -23,28 +23,37 @@ return {
             local current_entry = action_state.get_selected_entry()
             actions.close(prompt_bufnr)
 
+            if vim.tbl_isempty(selections) and not current_entry then
+                return
+            end
+
+            local function entry_file(entry)
+                return entry and (entry.filename or entry.value) or nil
+            end
+
             local selected_files = {}
+            local current_file = entry_file(current_entry)
 
             if not vim.tbl_isempty(selections) then
                 local found = false
                 for _, entry in ipairs(selections) do
-                    local file = entry.filename or entry.value
-                    table.insert(selected_files, { file = file, lnum = entry.lnum, col = entry.col })
-                    if file == (current_entry.filename or current_entry.value) then
-                        found = true
+                    local file = entry_file(entry)
+                    if file then
+                        table.insert(selected_files, { file = file, lnum = entry.lnum, col = entry.col })
+                        if file == current_file then
+                            found = true
+                        end
                     end
                 end
-                if not found then
-                    local file = current_entry.filename or current_entry.value
-                    table.insert(selected_files, { file = file, lnum = current_entry.lnum, col = current_entry.col })
+                if not found and current_file then
+                    table.insert(selected_files, { file = current_file, lnum = current_entry.lnum, col = current_entry.col })
                 end
-            else
-                local file = current_entry.filename or current_entry.value
-                table.insert(selected_files, { file = file, lnum = current_entry.lnum, col = current_entry.col })
+            elseif current_file then
+                table.insert(selected_files, { file = current_file, lnum = current_entry.lnum, col = current_entry.col })
             end
 
             for _, entry in ipairs(selected_files) do
-                vim.cmd("edit " .. entry.file)
+                vim.cmd("edit " .. vim.fn.fnameescape(entry.file))
                 if entry.lnum then
                     vim.api.nvim_win_set_cursor(0, { entry.lnum, entry.col or 0 })
                 end
