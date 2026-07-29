@@ -9,7 +9,7 @@ return {
     config = function()
 
         local function relative_path(full_path)
-            local cwd = vim.loop.cwd()
+            local cwd = vim.uv.cwd()
             if cwd and vim.startswith(full_path, cwd) then
                 return full_path:sub(#cwd + 2)
             end
@@ -93,6 +93,22 @@ return {
             return paths
         end
 
+        local function buf_for_path(path)
+            if type(path) ~= "string" or path == "" then
+                return -1
+            end
+            local target = vim.fs.normalize(vim.fn.fnamemodify(path, ":p"))
+            for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+                if vim.api.nvim_buf_is_valid(buf) then
+                    local name = vim.api.nvim_buf_get_name(buf)
+                    if name ~= "" and vim.fs.normalize(name) == target then
+                        return buf
+                    end
+                end
+            end
+            return -1
+        end
+
         local function safe_bdelete(bufnr)
             if type(bufnr) ~= "number" or bufnr < 1 then return end
             if not vim.api.nvim_buf_is_valid(bufnr) then return end
@@ -156,7 +172,7 @@ return {
                 path = node.path
             end
 
-            local bufnr = vim.fn.bufnr(path)
+            local bufnr = buf_for_path(path)
             if bufnr == -1 then return end
 
             safe_bdelete(bufnr)
@@ -166,7 +182,7 @@ return {
             local paths = get_selected_paths_or_current(state, {
                 include_current_if_missing = false,
                 allow = function(path)
-                    return type(path) == "string" and vim.fn.bufnr(path) ~= -1
+                    return type(path) == "string" and buf_for_path(path) ~= -1
                 end,
             })
 
@@ -278,7 +294,7 @@ return {
                 for _, path in ipairs(paths) do
                     local out = vim.fn.system({ "git", "restore", "--", path })
                     if vim.v.shell_error == 0 then
-                        local bufnr = vim.fn.bufnr(path)
+                        local bufnr = buf_for_path(path)
                         if bufnr ~= -1 then
                             pcall(vim.cmd, "silent checktime " .. bufnr)
                         end
@@ -628,7 +644,7 @@ return {
                     handler = function(args)
                         -- lock Neo-tree’s width so horizontal splits don’t span it
                         local winid = vim.api.nvim_get_current_win()
-                        pcall(vim.api.nvim_win_set_option, winid, "winfixwidth", true)
+                        pcall(vim.api.nvim_set_option_value, "winfixwidth", true, { win = winid })
 
                         layout.defer_reflow(60)
 
@@ -639,9 +655,9 @@ return {
                         local buf = vim.api.nvim_win_get_buf(winid)
                         local function clear_columns()
                             if not vim.api.nvim_win_is_valid(winid) then return end
-                            pcall(vim.api.nvim_win_set_option, winid, "statuscolumn", "")
-                            pcall(vim.api.nvim_win_set_option, winid, "foldcolumn", "0")
-                            pcall(vim.api.nvim_win_set_option, winid, "signcolumn", "no")
+                            pcall(vim.api.nvim_set_option_value, "statuscolumn", "", { win = winid })
+                            pcall(vim.api.nvim_set_option_value, "foldcolumn", "0", { win = winid })
+                            pcall(vim.api.nvim_set_option_value, "signcolumn", "no", { win = winid })
 
                             local ok, gs = pcall(require, "gitsigns")
                             if ok then pcall(gs.detach, buf) end
@@ -679,10 +695,16 @@ return {
 
         vim.api.nvim_create_autocmd("BufWinLeave", {
             callback = function(ev)
-                local ok, ft = pcall(vim.api.nvim_buf_get_option, ev.buf, "filetype")
-                if ok and ft == "neo-tree" then
+                if vim.api.nvim_buf_is_valid(ev.buf) and vim.bo[ev.buf].filetype == "neo-tree" then
                     layout.defer_reflow(50)
                 end
+            end,
+        })
+
+        vim.api.nvim_create_autocmd({ "BufDelete", "BufWipeout", "TermClose" }, {
+            group = vim.api.nvim_create_augroup("neotree_track_buffers", { clear = true }),
+            callback = function()
+                layout.refresh_neotree_buffers()
             end,
         })
 
@@ -695,15 +717,5 @@ return {
 
         vim.keymap.set('n', '<leader>n', toggle_last_neotree, { noremap = true, silent = true, desc = "Neotree: Toggle" })
         vim.keymap.set('n', '<leader>w', '<C-w>w', { noremap = true, silent = true, desc = "Switch Window" })
-        vim.diagnostic.config({
-            signs = {
-                text = {
-                    [vim.diagnostic.severity.ERROR] = '',
-                    [vim.diagnostic.severity.WARN] = '',
-                    [vim.diagnostic.severity.INFO] = '',
-                    [vim.diagnostic.severity.HINT] = '󰌵',
-                },
-            }
-        })
     end
 }
