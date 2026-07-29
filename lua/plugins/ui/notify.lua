@@ -1,13 +1,12 @@
-function _G.MyQFTF()
+function _G.MyQFTF(info)
+    local list = vim.fn.getqflist({ id = info.id, items = 1 })
     local out = {}
-    local items = vim.fn.getqflist()
-    for _, item in ipairs(items) do
-        out[#out + 1] = item.text
+    for i = info.start_idx, info.end_idx do
+        local item = list.items[i]
+        out[#out + 1] = item and item.text or ""
     end
     return out
 end
-
-vim.go.quickfixtextfunc = "v:lua.MyQFTF"
 
 return {
     "rcarriga/nvim-notify",
@@ -38,6 +37,16 @@ return {
         })
 
         vim.notify = notify
+
+        local QF_TITLE = "Notifications"
+        local function set_qflist(items, idx)
+            vim.fn.setqflist({}, "r", {
+                title = QF_TITLE,
+                items = items,
+                idx = idx,
+                quickfixtextfunc = "v:lua.MyQFTF",
+            })
+        end
 
         local NQF = (function()
             local dismissed = {}
@@ -90,7 +99,7 @@ return {
                         type = " ",
                         user_data = { header = true },
                     }
-                    vim.fn.setqflist({}, "r", { title = "Notifications", items = { header_item } })
+                    set_qflist({ header_item })
                     return
                 end
 
@@ -114,11 +123,7 @@ return {
                     items[1].text = header_text()
                 end
 
-                vim.fn.setqflist({}, "r", {
-                    title = "Notifications",
-                    items = items,
-                    idx = math.max(1, math.min(idx, #items)),
-                })
+                set_qflist(items, math.max(1, math.min(idx, #items)))
             end
 
             local function delete_all()
@@ -134,7 +139,7 @@ return {
                         type = " ",
                         user_data = { header = true },
                     }
-                    vim.fn.setqflist({}, "r", { title = "Notifications", items = { header_item } })
+                    set_qflist({ header_item })
                     return
                 end
 
@@ -150,7 +155,7 @@ return {
 
                 if header then
                     header.text = header_text()
-                    vim.fn.setqflist({}, "r", { title = "Notifications", items = { header } })
+                    set_qflist({ header })
                 else
                     local header_item = {
                         bufnr = 0,
@@ -160,7 +165,7 @@ return {
                         type = " ",
                         user_data = { header = true },
                     }
-                    vim.fn.setqflist({}, "r", { title = "Notifications", items = { header_item } })
+                    set_qflist({ header_item })
                 end
             end
 
@@ -184,11 +189,7 @@ return {
                     items[1].text = header_text()
                 end
 
-                vim.fn.setqflist({}, "r", {
-                    title = "Notifications",
-                    items = items,
-                    idx = safe_idx,
-                })
+                set_qflist(items, safe_idx)
 
                 local qf_open = false
                 for _, win in ipairs(vim.api.nvim_list_wins()) do
@@ -317,7 +318,7 @@ return {
             }
             table.insert(items, 1, header_item)
 
-            vim.fn.setqflist({}, "r", { title = "Notifications", items = items })
+            set_qflist(items)
 
             local qf_open = false
             for _, win in ipairs(vim.api.nvim_list_wins()) do

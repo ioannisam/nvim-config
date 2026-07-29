@@ -1,6 +1,7 @@
 return {
     "kevinhwang91/nvim-bqf",
     ft = "qf",
+    dependencies = { "catppuccin" },
     opts = {
         auto_enable = true,
         preview = {
@@ -9,7 +10,9 @@ return {
             delay_syntax = 50,
         },
     },
-    config = function()
+    config = function(_, opts)
+        require("bqf").setup(opts)
+
         local palette = require("catppuccin.palettes").get_palette()
 
         vim.api.nvim_set_hl(0, "QFTime", { fg = palette.surface2 })
@@ -31,6 +34,12 @@ return {
 
         vim.cmd([[
             function! SetQFSyntax()
+                " Only the Notifications list gets this treatment; every other
+                " quickfix list keeps Neovim's standard qf syntax.
+                if get(getqflist({'title': 1}), 'title', '') !=# 'Notifications'
+                    return
+                endif
+
                 syntax clear
 
                 " Match the header region first; use a region so we can control contained matches
