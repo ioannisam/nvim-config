@@ -30,12 +30,13 @@ This document lists the plugins of this configuration.
 | `kevinhwang91/nvim-bqf` | ui | explicit | Better quickfix list UX. |
 | `kevinhwang91/nvim-ufo` | editor | explicit | Folding provider/UX enhancements. |
 | `kevinhwang91/promise-async` | editor | dependency | Async helper required by `nvim-ufo`. |
-| `kyazdani42/nvim-web-devicons` | navigation | dependency | Legacy devicons dependency reference used by Harpoon spec. |
 | `kylechui/nvim-surround` | editor | explicit | Surround text objects/actions. |
 | `L3MON4D3/LuaSnip` | lsp | dependency | Snippet engine for completion/snippets. |
 | `lewis6991/gitsigns.nvim` | git | explicit | Git hunk signs and actions. |
 | `lukas-reineke/indent-blankline.nvim` | editor | explicit | Indentation guides (ibl). |
 | `luukvbaal/statuscol.nvim` | ui | explicit | Custom status/sign/fold column UI. |
+| `mason-org/mason-lspconfig.nvim` | lsp | explicit | Mason + lspconfig bridge for server install/setup. |
+| `mason-org/mason.nvim` | console, lsp | explicit+dependency | External tool and LSP/DAP installer manager. |
 | `matze/vim-move` | editor | explicit | Move lines/blocks with keymaps. |
 | `mbbill/undotree` | editor | explicit | Undo history tree panel. |
 | `mfussenegger/nvim-dap` | console | dependency | Core Debug Adapter Protocol client. |
@@ -55,6 +56,7 @@ This document lists the plugins of this configuration.
 | `nvimtools/none-ls.nvim` | lsp | explicit+dependency | External formatter/linter integrations via LSP-like interface. |
 | `nvim-tree/nvim-web-devicons` | navigation, ui | dependency | Filetype icons used by multiple UI plugins. |
 | `nvim-treesitter/nvim-treesitter` | editor | explicit+dependency | Treesitter parser framework and highlighting support. |
+| `nvim-treesitter/nvim-treesitter-textobjects` | editor | explicit | Treesitter textobjects for selection and function/class motions. |
 | `nvim-zh/colorful-winsep.nvim` | ui | explicit | Colored window separator styling. |
 | `nvzone/menu` | ui | explicit | Context menu UI. |
 | `nvzone/minty` | ui | dependency | Color tools dependency for `nvzone/menu` ecosystem. |
@@ -72,8 +74,6 @@ This document lists the plugins of this configuration.
 | `tpope/vim-repeat` | editor | explicit | Extends `.` repeat support for plugin actions. |
 | `utilyre/barbecue.nvim` | navigation | explicit | Breadcrumb/winbar navigation UI. |
 | `Wansmer/treesj` | editor | explicit | Split/join syntax nodes with Treesitter. |
-| `williamboman/mason-lspconfig.nvim` | lsp | explicit | Mason + lspconfig bridge for server install/setup. |
-| `williamboman/mason.nvim` | console, lsp | explicit+dependency | External tool and LSP/DAP installer manager. |
 | `windwp/nvim-autopairs` | editor | explicit | Auto-insert matching pairs/brackets. |
 | `windwp/nvim-ts-autotag` | editor | dependency | Treesitter-based auto-close/rename HTML tags. |
 | `zbirenbaum/copilot.lua` | ai | explicit | GitHub Copilot completion integration. |

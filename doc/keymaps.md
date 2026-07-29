@@ -129,8 +129,6 @@ This document lists the keymaps of this configuration across different plugins a
 | `<Esc>` | Close picker. |
 | `<Tab>` | Toggle selection and move next. |
 | `<S-Tab>` | Toggle selection and move previous. |
-| `<Tab>` | Toggle selection and move next. |
-| `<S-Tab>` | Toggle selection and move previous. |
 | `<CR>` | Open selected files (or current if none selected). |
 
 ## ToggleTerm
@@ -162,7 +160,7 @@ This document lists the keymaps of this configuration across different plugins a
 | n | `<leader>l` | Resume last search. |
 | n | `<leader>v` | Change result view mode. |
 | n | `<leader>s` | Use sed replace engine. |
-| n | `<leader>o` | Use oxi replace engine (same key as options menu). |
+| n | `<leader>x` | Use oxi replace engine. |
 | n | `<leader>t` | Select template. |
 
 ## Notifications
@@ -221,6 +219,22 @@ This document lists the keymaps of this configuration across different plugins a
 | n,x | `t` | Toggle/enable cursors. |
 | n | `<Esc>` | Exit/clear multi-cursor. |
 
+## Treesitter
+
+| Mode | Keymap | Description |
+| --- | --- | --- |
+| n | `<C-Space>` | Start incremental selection at the node under the cursor. |
+| x | `<C-Space>` | Expand selection to the parent node. |
+| x | `<BS>` | Shrink selection to the previous node. |
+| x, o | `af` | Select around function. |
+| x, o | `if` | Select inside function. |
+| x, o | `ac` | Select around class. |
+| x, o | `ic` | Select inside class. |
+| n, x, o | `]m` | Move to next function start. |
+| n, x, o | `[m` | Move to previous function start. |
+| n, x, o | `]]` | Move to next class start. |
+| n, x, o | `[[` | Move to previous class start. |
+
 ## Misc
 
 | Mode | Keymap | Plugin | Description |
@@ -230,8 +244,9 @@ This document lists the keymaps of this configuration across different plugins a
 | n | `K` | vim-move | Move line up. |
 | v | `J` | vim-move | Move selection down. |
 | v | `K` | vim-move | Move selection up. |
-| n | `1..9` | bufferline.nvim | Jump to buffer by index. |
-| n | `<2-LeftMouse>` | bufferline.nvim | Create new buffer from bufferline double-click row. |
+| n | `<leader>1..<leader>9` | bufferline.nvim | Jump to buffer by index. |
+| n | `<A-1>..<A-9>` | bufferline.nvim | Jump to buffer by index (alternative). |
+| n | `<2-LeftMouse>` | bufferline.nvim | Create new buffer when double-clicking the bufferline row (falls through to select-word elsewhere). |
 | n | `<F5>` | nvim-dap | DAP continue. |
 | n | `<F9>` | nvim-dap | Toggle DAP breakpoint. |
 | n | `<F10>` | nvim-dap | DAP step over. |
