@@ -49,7 +49,7 @@ return {
             scroll_down = "<c-d>",
             scroll_up = "<c-u>",
         },
-        sort = { "manual", "local", "group", "mod" },
+        sort = { "local", "order", "group", "alphanum", "mod" },
         expand = 0,
         -- expand = function(node)
         --   return not node.desc -- expand all nodes without a description
@@ -124,73 +124,72 @@ return {
         local wk = require("which-key")
         wk.setup(opts)
 
-        -- Your original counting logic
-        local function count_leader_maps(prefix)
+        local counts_cache = nil
+        local function build_counts()
             local leader = vim.g.mapleader or "\\"
-            local count = 0
-            local seen = {}
-
-            local prefixes = {}
+            local leader_forms
             if leader == " " then
-                table.insert(prefixes, " " .. prefix)
-                table.insert(prefixes, "<Space>" .. prefix)
+                leader_forms = { " ", "<Space>" }
             elseif leader == "\t" then
-                table.insert(prefixes, "\t" .. prefix)
-                table.insert(prefixes, "<Tab>" .. prefix)
+                leader_forms = { "\t", "<Tab>" }
             else
-                table.insert(prefixes, leader .. prefix)
+                leader_forms = { leader }
             end
 
-            local ok, wk_registry = pcall(function() return require("which-key.state").get() end)
-            if ok and wk_registry and wk_registry.mappings then
-                for _, mapping in ipairs(wk_registry.mappings or {}) do
-                    local lhs = mapping.lhs or (mapping[1] and mapping[1].lhs)
-                    if lhs and type(lhs) == "string" and not seen[lhs] then
-                        for _, pfx in ipairs(prefixes) do
-                            if vim.startswith(lhs, pfx) and #lhs > #pfx then
-                                seen[lhs] = true
-                                count = count + 1
-                                break
-                            end
-                        end
-                    end
-                end
-            end
-
-            local function scan(maps)
+            local lhs_set = {}
+            local function collect(maps)
                 for _, map in ipairs(maps) do
-                    if map.lhs and type(map.lhs) == "string" and not seen[map.lhs] then
-                        for _, pfx in ipairs(prefixes) do
-                            if vim.startswith(map.lhs, pfx) and #map.lhs > #pfx then
-                                seen[map.lhs] = true
-                                count = count + 1
-                                break
-                            end
-                        end
+                    if type(map.lhs) == "string" then
+                        lhs_set[map.lhs] = true
                     end
                 end
             end
 
-            pcall(function() scan(vim.api.nvim_get_keymap("n")) end)
-            pcall(function() scan(vim.api.nvim_buf_get_keymap(0, "n")) end)
-
+            pcall(function() collect(vim.api.nvim_get_keymap("n")) end)
             for _, buf in ipairs(vim.api.nvim_list_bufs()) do
                 if vim.api.nvim_buf_is_loaded(buf) then
-                    pcall(function() scan(vim.api.nvim_buf_get_keymap(buf, "n")) end)
+                    pcall(function() collect(vim.api.nvim_buf_get_keymap(buf, "n")) end)
                 end
             end
 
-            return count
+            local counts = {}
+            for lhs in pairs(lhs_set) do
+                for _, form in ipairs(leader_forms) do
+                    if vim.startswith(lhs, form) then
+                        local rest = lhs:sub(#form + 1)
+                        for len = 1, #rest - 1 do
+                            local pfx = rest:sub(1, len)
+                            counts[pfx] = (counts[pfx] or 0) + 1
+                        end
+                        break
+                    end
+                end
+            end
+
+            return counts
         end
 
-        -- Factory function that returns a dynamic string function for WhichKey
+        vim.api.nvim_create_autocmd({ "BufEnter", "BufDelete", "LspAttach", "LspDetach" }, {
+            group = vim.api.nvim_create_augroup("whichkey_group_counts", { clear = true }),
+            callback = function()
+                counts_cache = nil
+            end,
+        })
+
         local function dynamic_group(name, prefix)
             return function()
-                local count = count_leader_maps(prefix)
+                counts_cache = counts_cache or build_counts()
+                local count = counts_cache[prefix] or 0
                 if count == 0 then return name end
                 return string.format("%s (+%d)", name, count)
             end
         end
+
+        local buffer_jumps = {}
+        for i = 1, 9 do
+            buffer_jumps[#buffer_jumps + 1] = { "<leader>" .. i, hidden = true }
+        end
+        wk.add(buffer_jumps)
 
         wk.add({
             { "<leader>a", desc = "Select All", icon = "󰢤" },
