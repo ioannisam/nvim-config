@@ -76,7 +76,7 @@ local function close_kind(kind)
     if kind == "undotree" then
         pcall(vim.cmd, "silent! UndotreeHide")
     elseif kind == "trouble" then
-        pcall(vim.cmd, "silent! TroubleClose")
+        pcall(vim.cmd, "silent! Trouble close")
     elseif kind == "copilotchat" then
         pcall(function()
             require("CopilotChat").close()

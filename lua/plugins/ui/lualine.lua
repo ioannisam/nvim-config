@@ -19,11 +19,11 @@ return {
 	
 		require("lualine").setup({
 			options = {
-				theme = "catppuccin",
+				theme = "auto",
 				icons_enabled = true,
 				component_separators = { left = "", right = "" },
 				section_separators = { left = "", right = "" },
-				disabled_filetypes = { "dashboard", "NvimTree", "lazy" },
+				disabled_filetypes = { "alpha", "neo-tree", "lazy" },
 			},
 			sections = {
 				lualine_a = { "mode" },
@@ -33,7 +33,7 @@ return {
 				lualine_y = { "progress" },
 				lualine_z = { "location" },
 			},
-			extensions = { "nvim-tree", "toggleterm", "lazy" },
+			extensions = { "neo-tree", "toggleterm", "lazy" },
 		})
 	end,
 }
