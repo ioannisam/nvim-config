@@ -96,7 +96,7 @@ return {
                     desc = "use sed to replace"
                 },
                 ['change_replace_oxi'] = {
-                    map = "<leader>o",
+                    map = "<leader>x",
                     cmd = "<cmd>lua require('spectre').change_engine_replace('oxi')<CR>",
                     desc = "use oxi to replace"
                 },
