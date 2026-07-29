@@ -2,10 +2,11 @@ return {
     "folke/trouble.nvim",
     dependencies = { "rcarriga/nvim-notify" },
     opts = {
-        height = 10,
-        position = "bottom",
+        win = {
+            position = "bottom",
+            size = 10,
+        },
     },
-    lazy = false,
     cmd = "Trouble",
     keys = {
         {
