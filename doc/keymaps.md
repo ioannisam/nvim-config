@@ -10,6 +10,9 @@ This document lists the keymaps of this configuration across different plugins a
 | n | `<leader>w` | General | Switch window. |
 | n | `<leader>n` | Neotree | Toggle Neo-tree. |
 | n | `<leader>u` | General | Toggle UndoTree. |
+| n | `<leader>o` | General | Toggle symbol outline (Aerial). |
+| n | `<leader>p` | General | Toggle Precognition motion hints. |
+| n | `<leader>k` | General | Toggle Screenkey overlay. |
 | n | `<leader>bd` | Buffers | Delete current buffer. |
 | n | `<leader>bD` | Buffers | Delete buffers via picker. |
 | n | `<leader>bn` | Buffers | Next buffer. |
@@ -43,10 +46,12 @@ This document lists the keymaps of this configuration across different plugins a
 | n | `<leader>du` | Debug | Toggle DAP UI. |
 | n | `<leader>de` | Debug | Evaluate expression. |
 | n | `<leader>dq` | Debug | Quit DAP session. |
-| n | `<leader>xD` | Diagnostics | Diagnostics (Trouble, all). |
-| n | `<leader>xd` | Diagnostics | Diagnostics (Trouble, buffer). |
-| n | `<leader>xs` | Diagnostics | Symbols (Trouble). |
-| n | `<leader>xn` | Diagnostics | Toggle notifications history quickfix. |
+| n | `<leader>xD` | Diagnostics/Lists | Diagnostics (Trouble, all). |
+| n | `<leader>xd` | Diagnostics/Lists | Diagnostics (Trouble, buffer). |
+| n | `<leader>xs` | Diagnostics/Lists | Symbols (Trouble). |
+| n | `<leader>xn` | Diagnostics/Lists | Toggle notifications history quickfix. |
+| n | `<leader>xm` | Diagnostics/Lists | Buffer marks to quickfix. |
+| n | `<leader>xM` | Diagnostics/Lists | Global marks to quickfix. |
 | n | `<leader>le` | LSP/Lazy | Open diagnostics float. |
 | n | `<leader>lr` | LSP/Lazy | Rename symbol. |
 | n | `<leader>la` | LSP/Lazy | Code actions. |
@@ -57,6 +62,7 @@ This document lists the keymaps of this configuration across different plugins a
 | n | `<leader>fg` | Telescope | Live grep. |
 | n | `<leader>fh` | Telescope | Help tags. |
 | n | `<leader>fw` | Telescope | Grep word under cursor. |
+| n | `<leader>fp` | Telescope | Project picker (project.nvim). |
 | n | `<leader>sg` | Search | Global search (Spectre). |
 | n | `<leader>sl` | Search | Local search (Spectre, file scope). |
 | n | `<leader>swg` | Search Word / Selection | Search current word globally. |
@@ -65,8 +71,22 @@ This document lists the keymaps of this configuration across different plugins a
 | v | `<leader>swl` | Search Word / Selection | Search current selection locally. |
 | n | `<leader>vm` | Multi-cursor | Activate multi-cursor mode. |
 | x | `<leader>vm` | Multi-cursor | Activate multi-cursor at visual start. |
-| n | `<leader>cc` | Chat | Toggle Copilot Chat. |
-| n | `<leader>cq` | Chat | Todo quickfix list. |
+| n | `<leader>cc` | Code/Chat | Toggle Copilot Chat. |
+| n | `<leader>ca` | Code/Chat | Toggle CodeCompanion chat (Claude). |
+| x | `<leader>cA` | Code/Chat | Add selection to the CodeCompanion chat. |
+| n, x | `<leader>ci` | Code/Chat | CodeCompanion inline assistant (prefills the command line). |
+| n, x | `<leader>cp` | Code/Chat | CodeCompanion action palette. |
+| n | `<leader>cq` | Code/Chat | Todo quickfix list. |
+| x | `<leader>cs` | Code/Chat | CodeSnap: copy snapshot of selection to clipboard. |
+| x | `<leader>cS` | Code/Chat | CodeSnap: save snapshot of selection to disk. |
+| n | `<leader>yh` | Yank | Yank history picker (Telescope). |
+| n | `<leader>yc` | Yank | Clear yank history. |
+| n | `<leader>zt` | Fun | Typr typing practice. |
+| n | `<leader>zs` | Fun | Typr stats dashboard. |
+| n | `<leader>zb` | Fun | VimBeGood motion drills. |
+| n | `<leader>zm` | Fun | Nvimesweeper (Minesweeper). |
+| n | `<leader>z2` | Fun | 2048. |
+| n | `<leader>zT` | Fun | Tetris. |
 
 ## Neotree
 
@@ -235,6 +255,94 @@ This document lists the keymaps of this configuration across different plugins a
 | n, x, o | `]]` | Move to next class start. |
 | n, x, o | `[[` | Move to previous class start. |
 
+## Aerial
+
+Buffer-local inside the Aerial outline window.
+
+| Mode | Keymap | Description |
+| --- | --- | --- |
+| n | `<CR>` | Jump to the symbol under the cursor. |
+| n | `<2-LeftMouse>` | Jump to the symbol under the mouse. |
+| n | `p` | Scroll the source window to the symbol without leaving Aerial. |
+| n | `}` | Next symbol. |
+| n | `{` | Previous symbol. |
+| n | `X` | Expand all tree nodes. |
+| n | `C` | Collapse all tree nodes. |
+| n | `?` | Show help. |
+| n | `q` | Close the Aerial window. |
+
+## Marks
+
+Global mappings provided by `marks.nvim` (`default_mappings = true`).
+
+| Mode | Keymap | Description |
+| --- | --- | --- |
+| n | `mx` | Set mark `x` (any lowercase/uppercase letter). |
+| n | `m,` | Set the next available lowercase mark. |
+| n | `m;` | Toggle the next available mark on the current line. |
+| n | `m:` | Preview a mark (prompts for the mark name). |
+| n | `m]` | Move to the next mark. |
+| n | `m[` | Move to the previous mark. |
+| n | `dmx` | Delete mark `x`. |
+| n | `dm-` | Delete all marks on the current line. |
+| n | `dm<Space>` | Delete all marks in the current buffer. |
+| n | `m0` .. `m9` | Add a bookmark to group 0-9. |
+| n | `dm0` .. `dm9` | Delete all bookmarks in group 0-9. |
+| n | `m}` | Move to the next bookmark of the same group. |
+| n | `m{` | Move to the previous bookmark of the same group. |
+| n | `dm=` | Delete the bookmark under the cursor. |
+
+## 2048
+
+Buffer-local inside the game window.
+
+| Mode | Keymap | Description |
+| --- | --- | --- |
+| n | `h` / `j` / `k` / `l` | Move the tiles left/down/up/right. |
+| n | `<Left>` / `<Down>` / `<Up>` / `<Right>` | Same moves, via the arrow keys. |
+| n | `u` | Undo the last move. |
+| n | `r` | Restart the current game. |
+| n | `n` | New game (prompts for board size). |
+
+## Tetris
+
+Buffer-local inside the game window. The plugin binds only the arrow keys and disables
+every letter key; `hjkl` are re-added by this config.
+
+| Mode | Keymap | Description |
+| --- | --- | --- |
+| n | `h` / `<Left>` | Move the piece left. |
+| n | `l` / `<Right>` | Move the piece right. |
+| n | `j` / `<Down>` | Soft drop. |
+| n | `k` / `<Up>` | Rotate. |
+| n | `<Space>` | Hard drop. |
+
+## Nvimesweeper
+
+Movement uses ordinary cursor motions, so `hjkl` and the arrow keys both work.
+
+| Mode | Keymap | Description |
+| --- | --- | --- |
+| n | `<CR>` / `x` | Reveal the square under the cursor. |
+| n | `<Space>` | Cycle the marker on the square. |
+| n | `!` | Flag the square. |
+| n | `?` | Mark the square as uncertain. |
+| n | `<F1>` | Open the help page. |
+
+## Yanky
+
+`y`, `p`, and `P` are remapped so every yank and put flows through the yank ring.
+
+| Mode | Keymap | Description |
+| --- | --- | --- |
+| n, x | `y` | Yank into the ring (with highlight). |
+| n, x | `p` | Put after the cursor. |
+| n, x | `P` | Put before the cursor. |
+| n, x | `gp` | Put after, leaving the cursor at the end of the pasted text. |
+| n, x | `gP` | Put before, leaving the cursor at the end of the pasted text. |
+| n | `<C-n>` | Cycle to the next entry in the ring (immediately after a put). |
+| n | `<C-p>` | Cycle to the previous entry in the ring (immediately after a put). |
+
 ## Misc
 
 | Mode | Keymap | Plugin | Description |
@@ -294,6 +402,9 @@ This document lists the keymaps of this configuration across different plugins a
 | i | `<M-n>` | copilot.lua | Next Copilot suggestion. |
 | i | `<M-p>` | copilot.lua | Previous Copilot suggestion. |
 | i | `<M-d>` | copilot.lua | Dismiss Copilot suggestion. |
+| n | `[c` | nvim-treesitter-context | Jump upward to the enclosing context line. |
+| i | `<M-s>` | lsp_signature.nvim | Toggle the signature help window. |
+| i | `<M-j>` | lsp_signature.nvim | Cycle to the next signature overload. |
 
 ## Native
 

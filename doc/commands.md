@@ -48,6 +48,36 @@ These commands are explicitly enabled by plugin config, keymaps, or plugin `cmd`
 | `:BufferLineTogglePin` | `akinsho/bufferline.nvim` | plugin | Pin/unpin current buffer. |
 | `:Git` | `tpope/vim-fugitive` | plugin | Open Fugitive git status interface. |
 | `:Mason` | `mason-org/mason.nvim` | plugin | Open Mason UI for tools and servers. |
+| `:CodeCompanionChat Toggle` | `olimorris/codecompanion.nvim` | plugin | Toggle the Claude chat buffer. |
+| `:CodeCompanionChat Add` | `olimorris/codecompanion.nvim` | plugin | Add the visual selection to the chat. |
+| `:CodeCompanion {prompt}` | `olimorris/codecompanion.nvim` | plugin | Inline assistant that edits the buffer in place. |
+| `:CodeCompanionActions` | `olimorris/codecompanion.nvim` | plugin | Open the action palette (Telescope). |
+| `:CodeCompanionCmd {prompt}` | `olimorris/codecompanion.nvim` | plugin | Generate an Ex command from a prompt. |
+| `:CodeCompanionCodeReview` | `olimorris/codecompanion.nvim` | plugin | Review changes made by the assistant. |
+| `:AerialToggle` | `stevearc/aerial.nvim` | plugin | Toggle the symbol outline sidebar. |
+| `:AerialNext` / `:AerialPrev` | `stevearc/aerial.nvim` | plugin | Jump to the next/previous symbol. |
+| `:Telescope projects` | `DrKJeff16/project.nvim` | plugin | Open the project picker. |
+| `:Telescope yank_history` | `gbprod/yanky.nvim` | plugin | Browse the yank ring. |
+| `:Precognition toggle` | `tris203/precognition.nvim` | plugin | Toggle motion hints. |
+| `:Precognition peek` | `tris203/precognition.nvim` | plugin | Show motion hints until the next cursor move. |
+| `:TSContext toggle` | `nvim-treesitter/nvim-treesitter-context` | plugin | Toggle the sticky context header. |
+| `:MarksToggleSigns` | `chentoast/marks.nvim` | plugin | Toggle mark signs in the sign column. |
+| `:MarksQFListBuf` | `chentoast/marks.nvim` | plugin | Send buffer marks to the quickfix list. |
+| `:MarksQFListGlobal` | `chentoast/marks.nvim` | plugin | Send global marks to the quickfix list. |
+| `:BookmarksQFList` | `chentoast/marks.nvim` | plugin | Send bookmarks to the quickfix list. |
+| `:SatelliteEnable` / `:SatelliteDisable` | `lewis6991/satellite.nvim` | plugin | Enable/disable the decorated scrollbar. |
+| `:CodeSnap` | `mistricky/codesnap.nvim` | plugin | Copy an image of the selection to the clipboard. |
+| `:CodeSnapSave {path}` | `mistricky/codesnap.nvim` | plugin | Save an image of the selection. The path is required and must end in `.png`. |
+| `:CodeSnapASCII` | `mistricky/codesnap.nvim` | plugin | Copy an ASCII-art rendering of the selection. |
+| `:Screenkey toggle` | `NStefan002/screenkey.nvim` | plugin | Toggle the on-screen keypress display. |
+| `:Typr` | `nvzone/typr` | plugin | Start a typing practice session. |
+| `:TyprStats` | `nvzone/typr` | plugin | Open the typing stats dashboard. |
+| `:VimBeGood` | `ThePrimeagen/vim-be-good` | plugin | Start the Vim motion practice games. |
+| `:Nvimesweeper` | `seandewar/nvimesweeper` | plugin | Play Minesweeper. |
+| `:Play2048` | `NStefan002/2048.nvim` | plugin | Play 2048. |
+| `:Tetris` | `alec-gibson/nvim-tetris` | plugin | Play Tetris. |
+| `:ScreensaverStart` / `:ScreensaverStop` | `Root-lee/screensaver.nvim` | plugin | Start/stop the screensaver manually. |
+| `:ScreensaverToggle` | `Root-lee/screensaver.nvim` | plugin | Toggle the screensaver. |
 
 ## Native Neovim Commands
 
