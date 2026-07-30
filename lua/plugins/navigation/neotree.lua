@@ -614,12 +614,15 @@ return {
 
                         ["A"] = "git_add_all",
                         ["U"] = function(state)
-                            vim.fn.system("git reset")
+                            local out = vim.fn.system({ "git", "reset" })
+                            if vim.v.shell_error ~= 0 then
+                                vim.notify("Git reset failed: " .. out, vim.log.levels.ERROR, {title = "Neo-tree 󰹩"})
+                            end
                             require("neo-tree.sources.git_status").refresh(state)
                         end,
                         ["R"] = function(state)
                             git_confirm("Revert ALL files?", function()
-                                local out = vim.fn.system({ "git", "restore", "--", "." })
+                                local out = vim.fn.system({ "git", "restore", "--", ":/" })
                                 if vim.v.shell_error == 0 then
                                     for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
                                         local name = vim.api.nvim_buf_get_name(bufnr)
