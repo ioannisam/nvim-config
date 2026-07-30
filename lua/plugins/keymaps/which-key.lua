@@ -194,8 +194,11 @@ return {
         wk.add({
             { "<leader>a", desc = "Select All", icon = "󰢤" },
             { "<leader>w", desc = "Switch Window", icon = "" },
-            { "<leader>n", group = dynamic_group("Neotree", "n"), icon = "󰹩" },
+            { "<leader>n", desc = "Toggle Neotree", icon = "󰹩" },
             { "<leader>u", desc = "Toggle UndoTree", icon = "󰣜" },
+            { "<leader>o", desc = "Toggle Outline", icon = "󰙴" },
+            { "<leader>p", desc = "Toggle Precognition", icon = "󰛐" },
+            { "<leader>k", desc = "Toggle Screenkey", icon = "󰌌" },
 
             { "<leader>b", group = dynamic_group("Buffers", "b"), icon = "" },
             { "<leader>h", group = dynamic_group("Harpoon", "h"), icon = "󰛢" },
@@ -204,14 +207,17 @@ return {
 
             { "<leader>g", group = dynamic_group("Git", "g"), icon = "" },
             { "<leader>d", group = dynamic_group("Debug", "d"), icon = "" },
-            { "<leader>x", group = dynamic_group("Diagnostics", "x"), icon = "" },
+            { "<leader>x", group = dynamic_group("Diagnostics/Lists", "x"), icon = "" },
             { "<leader>l", group = dynamic_group("LSP/Lazy", "l"), icon = "" },
 
             { "<leader>f", group = dynamic_group("Telescope", "f"), icon = "" },
+            { "<leader>y", group = dynamic_group("Yank", "y"), icon = "󰅇" },
             { "<leader>s", group = dynamic_group("Search", "s"), icon = "" },
             { "<leader>sw", group = dynamic_group("Search Word / Selection", "sw"), icon = "" },
             { "<leader>v", group = dynamic_group("Multi-cursor", "v"), icon = "󱢓" },
-            { "<leader>c", group = dynamic_group("Chat", "c"), icon = "󰌵" },
+            
+            { "<leader>c", group = dynamic_group("Code/Chat", "c"), icon = "󰌵" },
+            { "<leader>z", group = dynamic_group("Fun", "z"), icon = "󰊗" },
         })
     end,
 }
