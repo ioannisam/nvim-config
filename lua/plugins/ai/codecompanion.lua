@@ -69,24 +69,7 @@ return {
         keys = {
             {
                 "<leader>ca",
-                function()
-                    local special_windows = require("utils.special_windows")
-                    if special_windows.is_open("codecompanion") then
-                        vim.cmd("CodeCompanionChat Toggle")
-                        return
-                    end
-
-                    local had_neotree = special_windows.is_open("neotree")
-                    special_windows.prepare_for_open("codecompanion")
-
-                    if had_neotree then
-                        vim.cmd("wincmd =")
-                    end
-
-                    vim.schedule(function()
-                        vim.cmd("CodeCompanionChat Toggle")
-                    end)
-                end,
+                "<cmd>CodeCompanionChat Toggle<cr>",
                 desc = "Toggle CodeCompanion Chat",
             },
             {
