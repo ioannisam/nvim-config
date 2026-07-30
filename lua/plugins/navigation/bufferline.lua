@@ -285,26 +285,16 @@ return {
         vim.keymap.set("n", "<leader>bD", function()
             local deleter = require("utils.deleter")
 
-            local cur_win = vim.api.nvim_get_current_win()
-            local cur_buf = vim.api.nvim_get_current_buf()
-
             local ordered = {}
-            local max_try = math.min(200, #vim.api.nvim_list_bufs() + 50)
-
-            for i = 1, max_try do
-                local ok, _ = pcall(vim.cmd, ("silent! BufferLineGoToBuffer %d"):format(i))
-                if not ok then
-                    break
+            local ok_elements, elements = pcall(function()
+                vim.cmd("redrawtabline")
+                return require("bufferline").get_elements().elements
+            end)
+            if ok_elements then
+                for _, element in ipairs(elements) do
+                    table.insert(ordered, element.id)
                 end
-                local b = vim.api.nvim_get_current_buf()
-                if #ordered > 0 and ordered[#ordered] == b then
-                    break
-                end
-                table.insert(ordered, b)
             end
-
-            pcall(vim.api.nvim_set_current_win, cur_win)
-            pcall(vim.api.nvim_set_current_buf, cur_buf)
 
             local entries = {}
             for idx, bufnr in ipairs(ordered) do
