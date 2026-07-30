@@ -1,13 +1,13 @@
 local M = {}
 
-local pickers = require("telescope.pickers")
-local finders = require("telescope.finders")
-local conf = require("telescope.config").values
-local actions = require("telescope.actions")
-local action_state = require("telescope.actions.state")
-local themes = require("telescope.themes")
-
 function M.multiselect(items, opts, on_confirm)
+    local pickers = require("telescope.pickers")
+    local finders = require("telescope.finders")
+    local conf = require("telescope.config").values
+    local actions = require("telescope.actions")
+    local action_state = require("telescope.actions.state")
+    local themes = require("telescope.themes")
+
     opts = opts or {}
     local prompt = opts.prompt or "Select items:"
     local format_item = opts.format_item
