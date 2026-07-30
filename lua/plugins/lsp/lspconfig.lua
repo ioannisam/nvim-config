@@ -48,6 +48,21 @@ return {
                 end, "LSP: Format buffer")
             end
 
+            local ltex_settings = {
+                language = "en",
+                dictionary = {
+                    ["en"] = {},
+                    ["el"] = {},
+                },
+                enabled = { "latex", "markdown", "text" },
+                languages = { "en", "el" },
+            }
+
+            local ngram_dir = vim.fn.expand("~/ngrams")
+            if vim.fn.isdirectory(ngram_dir) == 1 then
+                ltex_settings.additionalRules = { languageModel = ngram_dir }
+            end
+
             local servers = {
                 vimls = {},
                 lua_ls = {
@@ -70,20 +85,12 @@ return {
                 texlab = {},
                 ltex = {
                     settings = {
-                        ltex = {
-                            language = "en",
-                            additionalRules = {
-                                languageModel = "~/ngrams",
-                            },
-                            dictionary = {
-                                ["en"] = {},
-                                ["el"] = {},
-                            },
-                            enabled = { "latex", "markdown", "text" },
-                            languages = { "en", "el" },
-                        },
+                        ltex = ltex_settings,
                     },
                     filetypes = { "latex", "markdown", "text" },
+                    cmd_env = {
+                        JAVA_OPTS = "-Djdk.xml.totalEntitySizeLimit=0 -Djdk.xml.entityExpansionLimit=0",
+                    },
                 },
             }
 
@@ -98,6 +105,7 @@ return {
                     settings = config.settings,
                     flags = flags,
                     filetypes = config.filetypes,
+                    cmd_env = config.cmd_env,
                 })
                 vim.lsp.enable(server)
             end
