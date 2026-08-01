@@ -11,8 +11,6 @@ This document lists the keymaps of this configuration across different plugins a
 | n | `<leader>n` | Neotree | Toggle Neo-tree. |
 | n | `<leader>u` | General | Toggle UndoTree. |
 | n | `<leader>o` | General | Toggle symbol outline (Aerial). |
-| n | `<leader>p` | General | Toggle Precognition motion hints. |
-| n | `<leader>k` | General | Toggle Screenkey overlay. |
 | n | `<leader>bd` | Buffers | Delete current buffer. |
 | n | `<leader>bD` | Buffers | Delete buffers via picker. |
 | n | `<leader>bn` | Buffers | Next buffer. |
@@ -77,16 +75,8 @@ This document lists the keymaps of this configuration across different plugins a
 | n, x | `<leader>ci` | Code/Chat | CodeCompanion inline assistant (prefills the command line). |
 | n, x | `<leader>cp` | Code/Chat | CodeCompanion action palette. |
 | n | `<leader>cq` | Code/Chat | Todo quickfix list. |
-| x | `<leader>cs` | Code/Chat | CodeSnap: copy snapshot of selection to clipboard. |
-| x | `<leader>cS` | Code/Chat | CodeSnap: save snapshot of selection to disk. |
 | n | `<leader>yh` | Yank | Yank history picker (Telescope). |
 | n | `<leader>yc` | Yank | Clear yank history. |
-| n | `<leader>zt` | Fun | Typr typing practice. |
-| n | `<leader>zs` | Fun | Typr stats dashboard. |
-| n | `<leader>zb` | Fun | VimBeGood motion drills. |
-| n | `<leader>zm` | Fun | Nvimesweeper (Minesweeper). |
-| n | `<leader>z2` | Fun | 2048. |
-| n | `<leader>zT` | Fun | Tetris. |
 
 ## Neotree
 
@@ -292,57 +282,6 @@ Global mappings provided by `marks.nvim` (`default_mappings = true`).
 | n | `m{` | Move to the previous bookmark of the same group. |
 | n | `dm=` | Delete the bookmark under the cursor. |
 
-## Tmux
-
-Provided by `vim-tmux-navigator`. The same keys move between Neovim splits and
-tmux panes; when there is no split left in that direction, tmux takes over.
-Requires the matching tpm plugin in `~/.config/tmux/tmux.conf`.
-
-| Mode | Keymap | Description |
-| --- | --- | --- |
-| n | `<C-h>` | Go to the window/pane on the left. |
-| n | `<C-j>` | Go to the window/pane below. |
-| n | `<C-k>` | Go to the window/pane above. |
-| n | `<C-l>` | Go to the window/pane on the right. |
-| n | `<C-\>` | Go to the previously focused window/pane. |
-
-## 2048
-
-Buffer-local inside the game window.
-
-| Mode | Keymap | Description |
-| --- | --- | --- |
-| n | `h` / `j` / `k` / `l` | Move the tiles left/down/up/right. |
-| n | `<Left>` / `<Down>` / `<Up>` / `<Right>` | Same moves, via the arrow keys. |
-| n | `u` | Undo the last move. |
-| n | `r` | Restart the current game. |
-| n | `n` | New game (prompts for board size). |
-
-## Tetris
-
-Buffer-local inside the game window. The plugin binds only the arrow keys and disables
-every letter key; `hjkl` are re-added by this config.
-
-| Mode | Keymap | Description |
-| --- | --- | --- |
-| n | `h` / `<Left>` | Move the piece left. |
-| n | `l` / `<Right>` | Move the piece right. |
-| n | `j` / `<Down>` | Soft drop. |
-| n | `k` / `<Up>` | Rotate. |
-| n | `<Space>` | Hard drop. |
-
-## Nvimesweeper
-
-Movement uses ordinary cursor motions, so `hjkl` and the arrow keys both work.
-
-| Mode | Keymap | Description |
-| --- | --- | --- |
-| n | `<CR>` / `x` | Reveal the square under the cursor. |
-| n | `<Space>` | Cycle the marker on the square. |
-| n | `!` | Flag the square. |
-| n | `?` | Mark the square as uncertain. |
-| n | `<F1>` | Open the help page. |
-
 ## Yanky
 
 `y`, `p`, and `P` are remapped so every yank and put flows through the yank ring.
@@ -356,6 +295,20 @@ Movement uses ordinary cursor motions, so `hjkl` and the arrow keys both work.
 | n, x | `gP` | Put before, leaving the cursor at the end of the pasted text. |
 | n | `<C-n>` | Cycle to the next entry in the ring (immediately after a put). |
 | n | `<C-p>` | Cycle to the previous entry in the ring (immediately after a put). |
+
+## Tmux
+
+Provided by `vim-tmux-navigator`. The same keys move between Neovim splits and
+tmux panes; when there is no split left in that direction, tmux takes over.
+Requires the matching tpm plugin in `~/.config/tmux/tmux.conf`.
+
+| Mode | Keymap | Description |
+| --- | --- | --- |
+| n | `<C-h>` | Go to the window/pane on the left. |
+| n | `<C-j>` | Go to the window/pane below. |
+| n | `<C-k>` | Go to the window/pane above. |
+| n | `<C-l>` | Go to the window/pane on the right. |
+| n | `<C-\>` | Go to the previously focused window/pane. |
 
 ## Misc
 

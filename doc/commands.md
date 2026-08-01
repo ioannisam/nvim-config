@@ -12,7 +12,6 @@ These are defined directly in this config via `vim.api.nvim_create_user_command`
 | `:AlphaRestoreSession` | `goolord/alpha-nvim` + `folke/persistence.nvim` | custom | Restore session for current cwd (or open session picker fallback). |
 | `:PersistenceClear` | `folke/persistence.nvim` + local config | custom | Interactively delete saved sessions. |
 | `:CopilotAuth` | `zbirenbaum/copilot.lua` + local config | custom | Start GitHub Copilot auth flow. |
-| `:CodeSnapSaveAuto` | `mistricky/codesnap.nvim` + local config | custom | Save a snapshot of the selection to `~/Pictures/codesnap` under a timestamped name. |
 
 ## Plugin Commands Used In This Setup
 
@@ -59,26 +58,12 @@ These commands are explicitly enabled by plugin config, keymaps, or plugin `cmd`
 | `:AerialNext` / `:AerialPrev` | `stevearc/aerial.nvim` | plugin | Jump to the next/previous symbol. |
 | `:Telescope projects` | `DrKJeff16/project.nvim` | plugin | Open the project picker. |
 | `:Telescope yank_history` | `gbprod/yanky.nvim` | plugin | Browse the yank ring. |
-| `:Precognition toggle` | `tris203/precognition.nvim` | plugin | Toggle motion hints. |
-| `:Precognition peek` | `tris203/precognition.nvim` | plugin | Show motion hints until the next cursor move. |
 | `:TSContext toggle` | `nvim-treesitter/nvim-treesitter-context` | plugin | Toggle the sticky context header. |
 | `:MarksToggleSigns` | `chentoast/marks.nvim` | plugin | Toggle mark signs in the sign column. |
 | `:MarksQFListBuf` | `chentoast/marks.nvim` | plugin | Send buffer marks to the quickfix list. |
 | `:MarksQFListGlobal` | `chentoast/marks.nvim` | plugin | Send global marks to the quickfix list. |
 | `:BookmarksQFList` | `chentoast/marks.nvim` | plugin | Send bookmarks to the quickfix list. |
 | `:SatelliteEnable` / `:SatelliteDisable` | `lewis6991/satellite.nvim` | plugin | Enable/disable the decorated scrollbar. |
-| `:CodeSnap` | `mistricky/codesnap.nvim` | plugin | Copy an image of the selection to the clipboard. |
-| `:CodeSnapSave {path}` | `mistricky/codesnap.nvim` | plugin | Save an image of the selection. The path is required and must end in `.png`. |
-| `:CodeSnapASCII` | `mistricky/codesnap.nvim` | plugin | Copy an ASCII-art rendering of the selection. |
-| `:Screenkey toggle` | `NStefan002/screenkey.nvim` | plugin | Toggle the on-screen keypress display. |
-| `:Typr` | `nvzone/typr` | plugin | Start a typing practice session. |
-| `:TyprStats` | `nvzone/typr` | plugin | Open the typing stats dashboard. |
-| `:VimBeGood` | `ThePrimeagen/vim-be-good` | plugin | Start the Vim motion practice games. |
-| `:Nvimesweeper` | `seandewar/nvimesweeper` | plugin | Play Minesweeper. |
-| `:Play2048` | `NStefan002/2048.nvim` | plugin | Play 2048. |
-| `:Tetris` | `alec-gibson/nvim-tetris` | plugin | Play Tetris. |
-| `:ScreensaverStart` / `:ScreensaverStop` | `Root-lee/screensaver.nvim` | plugin | Start/stop the screensaver manually. |
-| `:ScreensaverToggle` | `Root-lee/screensaver.nvim` | plugin | Toggle the screensaver. |
 
 ## Native Neovim Commands
 

@@ -25,7 +25,6 @@ require("lazy").setup({
         { import = "plugins.git"},
         { import = "plugins.ai"},
         { import = "plugins.ui" },
-        { import = "plugins.fun" },
     },
     -- other settings
     install = { colorscheme = { "habamax" } },

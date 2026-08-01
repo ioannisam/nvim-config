@@ -90,7 +90,6 @@ Quick validation checklist:
 - `<leader>fp` lists known projects
 - `<leader>cc` opens Copilot Chat (after Copilot auth)
 - `<leader>ca` opens CodeCompanion chat (after `ANTHROPIC_API_KEY` is exported)
-- `<leader>zt` opens Typr
 
 ## Updating
 

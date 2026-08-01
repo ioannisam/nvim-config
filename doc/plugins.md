@@ -7,7 +7,6 @@ This document lists the plugins of this configuration.
 | `folke/lazy.nvim` | core | core | Plugin manager used to bootstrap and load all plugin specs. |
 | `akinsho/bufferline.nvim` | navigation | explicit | Buffer tabline UI and buffer management actions. |
 | `akinsho/toggleterm.nvim` | console | explicit | Integrated terminal management with toggles and layouts. |
-| `alec-gibson/nvim-tetris` | fun | explicit | Tetris game inside a Neovim buffer. |
 | `catppuccin/nvim` | ui | explicit | Main colorscheme/theme. |
 | `chentoast/marks.nvim` | navigation | explicit | Sign-column visualization and management of vim marks and bookmarks. |
 | `christoomey/vim-tmux-navigator` | navigation | explicit | Seamless `<C-h/j/k/l>` movement between Neovim splits and tmux panes. |
@@ -46,12 +45,9 @@ This document lists the plugins of this configuration.
 | `matze/vim-move` | editor | explicit | Move lines/blocks with keymaps. |
 | `mbbill/undotree` | editor | explicit | Undo history tree panel. |
 | `mfussenegger/nvim-dap` | console | dependency | Core Debug Adapter Protocol client. |
-| `mistricky/codesnap.nvim` | ui | explicit | Renders selected code to a shareable image. |
 | `monaqa/dial.nvim` | editor | explicit | Increment/decrement extended text objects. |
 | `MunifTanjim/nui.nvim` | navigation, ui | dependency | UI primitives for plugins like Neo-tree/Noice. |
 | `neovim/nvim-lspconfig` | lsp | explicit | LSP client server configurations and attach hooks. |
-| `NStefan002/2048.nvim` | fun | explicit | 2048 game with persisted progress. |
-| `NStefan002/screenkey.nvim` | ui | explicit | On-screen display of pressed keys (demos/recordings). |
 | `numToStr/Comment.nvim` | editor | explicit | Comment toggling/operator mappings. |
 | `nvim-lualine/lualine.nvim` | ui | explicit | Statusline UI. |
 | `nvim-lua/plenary.nvim` | ai, docs, editor, git, lsp, navigation, ui | dependency | Lua utility library used by many plugins. |
@@ -70,26 +66,21 @@ This document lists the plugins of this configuration.
 | `nvim-zh/colorful-winsep.nvim` | ui | explicit | Colored window separator styling. |
 | `nvzone/menu` | ui | explicit | Context menu UI. |
 | `nvzone/minty` | ui | dependency | Color tools dependency for `nvzone/menu` ecosystem. |
-| `nvzone/typr` | fun | explicit | Typing practice with a stats dashboard. |
-| `nvzone/volt` | fun, ui | dependency | Base dependency for `nvzone/menu` and `nvzone/typr`. |
+| `nvzone/volt` | ui | dependency | Base dependency for `nvzone/menu`. |
 | `olimorris/codecompanion.nvim` | ai | explicit | Claude (Anthropic) chat, inline assistant, and action palette. |
 | `OXY2DEV/markview.nvim` | docs | explicit | Markdown/markup preview tooling. |
 | `rafamadriz/friendly-snippets` | lsp | dependency | Snippet collection for LuaSnip/cmp. |
 | `ray-x/lsp_signature.nvim` | lsp | explicit | Floating/virtual-text function signature hints while typing. |
 | `rcarriga/nvim-dap-ui` | console | explicit | UI panels for DAP debugging sessions. |
 | `rcarriga/nvim-notify` | console, navigation, ui | explicit+dependency | Notification UI backend used directly and by other plugins. |
-| `Root-lee/screensaver.nvim` | fun | explicit | Idle screensaver with a bouncing-character animation. |
 | `RRethy/vim-illuminate` | editor | explicit | Word/reference illumination under cursor. |
 | `saadparwaiz1/cmp_luasnip` | lsp | dependency | LuaSnip completion source for `nvim-cmp`. |
-| `seandewar/nvimesweeper` | fun | explicit | Minesweeper game inside a Neovim buffer. |
 | `smiteshp/nvim-navic` | navigation | dependency | LSP context/navigation component used by barbecue. |
 | `stevearc/aerial.nvim` | navigation | explicit | Symbol outline sidebar backed by LSP/Treesitter. |
 | `stevearc/dressing.nvim` | ui | explicit | Improved `vim.ui` select/input dialogs. |
 | `ThePrimeagen/harpoon` | navigation, ui | explicit+dependency | Quick file marking/navigation list and picker. |
-| `ThePrimeagen/vim-be-good` | fun | explicit | Practice games for Vim motions and editing. |
 | `tpope/vim-fugitive` | git | explicit | Git commands and fugitive workflow. |
 | `tpope/vim-repeat` | editor | explicit | Extends `.` repeat support for plugin actions. |
-| `tris203/precognition.nvim` | editor | explicit | Virtual-text hints for available motions. |
 | `utilyre/barbecue.nvim` | navigation | explicit | Breadcrumb/winbar navigation UI. |
 | `Wansmer/treesj` | editor | explicit | Split/join syntax nodes with Treesitter. |
 | `windwp/nvim-autopairs` | editor | explicit | Auto-insert matching pairs/brackets. |
@@ -106,7 +97,6 @@ Plugin specs live in `lua/plugins/<category>/` and are imported by `lua/config/l
 | `console` | Terminal, debugger, and diagnostics panels. |
 | `docs` | Markdown rendering and TODO comment tooling. |
 | `editor` | Text editing, motions, folding, and buffer-level enhancements. |
-| `fun` | Games, typing practice, and the idle screensaver. |
 | `git` | Git signs, Fugitive, and Lazygit. |
 | `keymaps` | Which-key configuration and keymap grouping. |
 | `lsp` | LSP servers, completion, formatting, and signature help. |

@@ -197,8 +197,6 @@ return {
             { "<leader>n", desc = "Toggle Neotree", icon = "󰹩" },
             { "<leader>u", desc = "Toggle UndoTree", icon = "󰣜" },
             { "<leader>o", desc = "Toggle Outline", icon = "󰙴" },
-            { "<leader>p", desc = "Toggle Precognition", icon = "󰛐" },
-            { "<leader>k", desc = "Toggle Screenkey", icon = "󰌌" },
 
             { "<leader>b", group = dynamic_group("Buffers", "b"), icon = "" },
             { "<leader>h", group = dynamic_group("Harpoon", "h"), icon = "󰛢" },
@@ -217,7 +215,6 @@ return {
             { "<leader>v", group = dynamic_group("Multi-cursor", "v"), icon = "󱢓" },
             
             { "<leader>c", group = dynamic_group("Code/Chat", "c"), icon = "󰌵" },
-            { "<leader>z", group = dynamic_group("Fun", "z"), icon = "󰊗" },
         })
     end,
 }
