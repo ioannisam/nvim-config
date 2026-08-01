@@ -634,15 +634,11 @@ return {
                             last_neotree_source = args.source
                         end
 
-                        local buf = vim.api.nvim_win_get_buf(winid)
                         local function clear_columns()
                             if not vim.api.nvim_win_is_valid(winid) then return end
                             pcall(vim.api.nvim_set_option_value, "statuscolumn", "", { win = winid })
                             pcall(vim.api.nvim_set_option_value, "foldcolumn", "0", { win = winid })
                             pcall(vim.api.nvim_set_option_value, "signcolumn", "no", { win = winid })
-
-                            local ok, gs = pcall(require, "gitsigns")
-                            if ok then pcall(gs.detach, buf) end
                         end
 
                         vim.defer_fn(clear_columns, 50)

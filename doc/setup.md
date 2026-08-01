@@ -6,19 +6,12 @@ This document explains how to install and run this Neovim configuration on a fre
 
 Install these base tools first:
 
-- Neovim 0.11+ (required: the LSP setup uses `vim.lsp.config`/`vim.lsp.enable`)
+- Neovim 0.11+
 - Git
 - `ripgrep` (`rg`)
 - `fd` (or `fdfind` on some distros)
 - `make` and a C compiler toolchain (needed for native plugin builds)
-- `tree-sitter` CLI (required: `nvim-treesitter` compiles parsers with it)
 - `curl` (optional, useful for external installers)
-
-On Arch, the tree-sitter CLI is `extra/tree-sitter-cli`:
-
-```bash
-sudo pacman -S tree-sitter-cli
-```
 
 On Linux, also ensure you have a Nerd Font configured in your terminal for icon support.
 
@@ -49,8 +42,6 @@ On first launch, `lazy.nvim` will bootstrap automatically and install plugins.
 Inside Neovim, run:
 
 - `:Lazy sync` to install/update plugins
-- `:TSUpdate` to compile the Treesitter parsers
-- `:Mason` and install any missing language servers/tools you want
 - `:checkhealth` to detect missing providers and binaries
 
 If Telescope FZF native fails to build, verify:
@@ -59,9 +50,6 @@ If Telescope FZF native fails to build, verify:
 - compiler tools are installed (`gcc`/`clang`, libc headers)
 
 Then rerun `:Lazy sync`.
-
-If Treesitter reports missing parsers on startup, verify the `tree-sitter` CLI is on
-your `PATH`, then rerun `:TSUpdate`. Check with `:checkhealth nvim-treesitter`.
 
 ## Optional Providers
 
@@ -82,22 +70,14 @@ npm install -g neovim
 Quick validation checklist:
 
 - `:Lazy` opens and shows plugins loaded
-- `:Mason` opens normally
-- `:InspectTree` renders a syntax tree in a source file
 - `<leader>ff` opens Telescope find files
 - `<leader>n` toggles Neo-tree
-- `<leader>o` toggles the Aerial symbol outline
-- `<leader>fp` lists known projects
-- `<leader>cc` opens Copilot Chat (after Copilot auth)
-- `<leader>ca` opens CodeCompanion chat (after `ANTHROPIC_API_KEY` is exported)
-- `<leader>zt` opens Typr
 
 ## Updating
 
 To update later:
 
 - `:Lazy update`
-- `:Mason` to update tooling as needed
 - restart Neovim
 
 If something breaks after updates, check `lazy-lock.json` changes and run `:checkhealth`.

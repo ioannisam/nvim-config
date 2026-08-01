@@ -8,9 +8,8 @@ return {
             large_file_cutoff = 2000,
             min_count_to_highlight = 1,
 
+            -- No LSP or treesitter on this tier, so both providers have no source.
             providers = {
-                'lsp',
-                'treesitter',
                 'regex',
             },
             filetypes_denylist = require("utils.filetypes").with({ "dirvish" }),
