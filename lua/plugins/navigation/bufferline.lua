@@ -48,17 +48,11 @@ return {
                 left_trunc_marker = "",
                 right_trunc_marker = "",
 
-                diagnostics = "nvim_lsp",
+                diagnostics = false,
                 offsets = {
                     {
                         filetype = "neo-tree",
                         text = "File Explorer",
-                        text_align = "center",
-                        separator = true,
-                    },
-                    {
-                        filetype = "undotree",
-                        text = "Undo Tree",
                         text_align = "center",
                         separator = true,
                     },
@@ -97,34 +91,6 @@ return {
                             priority = 1,
                         }),
                     },
-                },
-
-                custom_areas = {
-                    right = function()
-                        local result = {}
-                        local seve = vim.diagnostic.severity
-
-                        local error = #vim.diagnostic.get(0, { severity = seve.ERROR })
-                        if error ~= 0 then
-                            table.insert(result, { text = "  " .. error, link = "DiagnosticError" })
-                        end
-
-                        local warning = #vim.diagnostic.get(0, { severity = seve.WARN })
-                        if warning ~= 0 then
-                            table.insert(result, { text = "  " .. warning, link = "DiagnosticWarn" })
-                        end
-
-                        local hint = #vim.diagnostic.get(0, { severity = seve.HINT })
-                        if hint ~= 0 then
-                            table.insert(result, { text = "  " .. hint, link = "DiagnosticHint" })
-                        end
-
-                        local info = #vim.diagnostic.get(0, { severity = seve.INFO })
-                        if info ~= 0 then
-                            table.insert(result, { text = "  " .. info, link = "DiagnosticInfo" })
-                        end
-                        return result
-                    end,
                 },
             },
         })

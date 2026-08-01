@@ -10,15 +10,9 @@ return {
         handlers = {
             cursor = { enable = true },
             search = { enable = true },
-            diagnostic = {
-                enable = true,
-                signs = { "-", "=", "≡" },
-                min_severity = vim.diagnostic.severity.HINT,
-            },
-            gitsigns = {
-                enable = true,
-                signs = { add = "│", change = "│", delete = "-" },
-            },
+            -- No LSP or gitsigns on this tier, so both handlers have no source.
+            diagnostic = { enable = false },
+            gitsigns = { enable = false },
             marks = { enable = true, show_builtins = false },
             quickfix = { enable = true, signs = { "-", "=", "≡" } },
         },

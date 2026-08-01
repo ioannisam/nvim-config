@@ -6,7 +6,7 @@ return {
         require("statuscol").setup({
             -- order: git signs -> folds -> numbers
             segments = {
-                { text = { "%s" },                  click = "v:lua.ScSa" }, -- signs (gitsigns, diagnostics)
+                { text = { "%s" },                  click = "v:lua.ScSa" }, -- signs
                 { text = { builtin.foldfunc },      click = "v:lua.ScFa" }, -- folds (/)
                 { text = { builtin.lnumfunc, " " }, click = "v:lua.ScLa" }, -- line numbers
             },

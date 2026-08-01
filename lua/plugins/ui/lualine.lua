@@ -21,18 +21,19 @@ return {
 
             return count > 0 and ("󰛢 " .. count) or "" -- 󰀱
         end
-    
+
         require("lualine").setup({
             options = {
                 theme = "auto",
                 icons_enabled = true,
-                component_separators = { left = "", right = "" },
-                section_separators = { left = "", right = "" },
-                disabled_filetypes = { "alpha", "neo-tree", "lazy" },
+                component_separators = { left = "", right = "" },
+                section_separators = { left = "", right = "" },
+                disabled_filetypes = { "neo-tree", "lazy" },
             },
             sections = {
                 lualine_a = { "mode" },
-                lualine_b = { "branch", "diff", "diagnostics", harpoons },
+                -- No `diff` (needs gitsigns) or `diagnostics` (needs an LSP) on this tier.
+                lualine_b = { "branch", harpoons },
                 lualine_c = { { "filename", path = 1 } },
                 lualine_x = { "encoding", "fileformat", "filetype" },
                 lualine_y = { "progress" },

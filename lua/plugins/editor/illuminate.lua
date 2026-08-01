@@ -8,8 +8,8 @@ return {
             large_file_cutoff = 2000,
             min_count_to_highlight = 1,
 
+            -- No LSP on this tier, so that provider has no source.
             providers = {
-                'lsp',
                 'treesitter',
                 'regex',
             },

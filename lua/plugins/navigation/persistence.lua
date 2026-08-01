@@ -34,22 +34,6 @@ return {
 
         vim.api.nvim_create_autocmd("User", {
             group = session_group,
-            pattern = "PersistenceSavePre",
-            callback = function()
-                for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-                    if not is_real_file(buf) then
-                        local ft = vim.bo[buf].filetype or ""
-                        local name = vim.api.nvim_buf_get_name(buf)
-                        if ft == "undotree" or name:match("__Undotree__") or name:match("^undotree_") then
-                            pcall(vim.api.nvim_buf_delete, buf, { force = true })
-                        end
-                    end
-                end
-            end,
-        })
-
-        vim.api.nvim_create_autocmd("User", {
-            group = session_group,
             pattern = "PersistenceSavePost",
             callback = function()
                 local session_file = require("persistence").current()
