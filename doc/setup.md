@@ -88,9 +88,6 @@ Quick validation checklist:
 - `<leader>n` toggles Neo-tree
 - `<leader>o` toggles the Aerial symbol outline
 - `<leader>fp` lists known projects
-- `<leader>cc` opens Copilot Chat (after Copilot auth)
-- `<leader>ca` opens CodeCompanion chat (after `ANTHROPIC_API_KEY` is exported)
-- `<leader>zt` opens Typr
 
 ## Updating
 
