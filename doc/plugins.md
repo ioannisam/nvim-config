@@ -10,6 +10,7 @@ This document lists the plugins of this configuration.
 | `alec-gibson/nvim-tetris` | fun | explicit | Tetris game inside a Neovim buffer. |
 | `catppuccin/nvim` | ui | explicit | Main colorscheme/theme. |
 | `chentoast/marks.nvim` | navigation | explicit | Sign-column visualization and management of vim marks and bookmarks. |
+| `christoomey/vim-tmux-navigator` | navigation | explicit | Seamless `<C-h/j/k/l>` movement between Neovim splits and tmux panes. |
 | `CopilotC-Nvim/CopilotChat.nvim` | ai | explicit | Copilot chat UI and workflow commands. |
 | `danilamihailov/beacon.nvim` | ui | explicit | Cursor jump highlight/beacon effect. |
 | `DrKJeff16/project.nvim` | navigation | explicit | Project root detection, auto-chdir, and project picker. |

@@ -292,6 +292,20 @@ Global mappings provided by `marks.nvim` (`default_mappings = true`).
 | n | `m{` | Move to the previous bookmark of the same group. |
 | n | `dm=` | Delete the bookmark under the cursor. |
 
+## Tmux
+
+Provided by `vim-tmux-navigator`. The same keys move between Neovim splits and
+tmux panes; when there is no split left in that direction, tmux takes over.
+Requires the matching tpm plugin in `~/.config/tmux/tmux.conf`.
+
+| Mode | Keymap | Description |
+| --- | --- | --- |
+| n | `<C-h>` | Go to the window/pane on the left. |
+| n | `<C-j>` | Go to the window/pane below. |
+| n | `<C-k>` | Go to the window/pane above. |
+| n | `<C-l>` | Go to the window/pane on the right. |
+| n | `<C-\>` | Go to the previously focused window/pane. |
+
 ## 2048
 
 Buffer-local inside the game window.
