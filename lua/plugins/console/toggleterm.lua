@@ -114,7 +114,7 @@ return {
                     end)
                 end
 
-                if terminals[term.id] then
+                if terminals[term.id] == term then
                     cleanup(term.id)
                     table.insert(freed_ids, term.id)
                     vim.notify("Terminal " .. term.id .. " exited", vim.log.levels.INFO, { title = "ToggleTerm  " })
