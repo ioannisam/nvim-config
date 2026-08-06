@@ -80,6 +80,10 @@ return {
         vim.api.nvim_create_autocmd("FileType", {
             pattern = "qf",
             callback = function(args)
+                if vim.fn.getqflist({ title = 1 }).title == "Notifications" then
+                    return
+                end
+
                 vim.keymap.set("n", "<Esc>", "<cmd>cclose | lclose<CR>", {
                     buffer = args.buf,
                     silent = true,
