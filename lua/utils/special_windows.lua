@@ -14,10 +14,6 @@ local function get_win_kind(win)
         return nil
     end
 
-    if is_floating(win) then
-        return nil
-    end
-
     local buf = vim.api.nvim_win_get_buf(win)
     if not vim.api.nvim_buf_is_valid(buf) then
         return nil
@@ -28,6 +24,10 @@ local function get_win_kind(win)
 
     if ft == "neo-tree" then
         return "neotree"
+    end
+
+    if is_floating(win) then
+        return nil
     end
 
     if vim.b[buf].is_toggleterm == true or (vim.b[buf].native_term == true and bt == "terminal") then
