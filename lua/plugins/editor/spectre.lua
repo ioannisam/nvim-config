@@ -124,7 +124,7 @@ return {
             desc = "Search current word (global)"
         })
         vim.keymap.set('v', '<leader>swg', function()
-            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", true)
+            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
             special_windows.prepare_for_open("spectre")
             require("spectre").open_visual()
         end, {
@@ -149,7 +149,7 @@ return {
             desc = "Search current word (local)"
         })
         vim.keymap.set('v', '<leader>swl', function()
-            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", true)
+            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
             special_windows.prepare_for_open("spectre")
             require("spectre").open_file_search()
         end, {
