@@ -47,8 +47,15 @@ local dvd = {
         }
     end,
     update = function(grid, state)
-        for r = 1, state.height do
-            for c = 1, state.width do
+        local height = #grid
+        local width = height > 0 and #grid[1] or 0
+        if width == 0 or height == 0 then
+            return true
+        end
+        state.width, state.height = width, height
+
+        for r = 1, height do
+            for c = 1, width do
                 grid[r][c] = { char = " ", hl_group = "" }
             end
         end
