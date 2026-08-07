@@ -39,8 +39,8 @@ return {
         vim.notify = notify
 
         local QF_TITLE = "Notifications"
-        local function set_qflist(items, idx)
-            vim.fn.setqflist({}, "r", {
+        local function set_qflist(items, idx, action)
+            vim.fn.setqflist({}, action or "r", {
                 title = QF_TITLE,
                 items = items,
                 idx = idx,
@@ -237,13 +237,34 @@ return {
         vim.keymap.set("n", "<leader>xn", function()
             local special_windows = require("utils.special_windows")
             local notify = require("notify")
-            local history = notify.history()
 
             local NQF = _G.NQF or nil
             if not NQF then
                 vim.notify("NQF not found", vim.log.levels.ERROR, { title = "Notify 󰂟" })
                 return
             end
+
+            local qf_open = false
+            for _, win in ipairs(vim.api.nvim_list_wins()) do
+                if vim.bo[vim.api.nvim_win_get_buf(win)].buftype == "quickfix" then
+                    qf_open = true
+                    break
+                end
+            end
+
+            if qf_open then
+                local showing_notifications = vim.fn.getqflist({ title = 1 }).title == QF_TITLE
+                vim.cmd("cclose")
+                if details_win and vim.api.nvim_win_is_valid(details_win) then
+                    vim.api.nvim_win_close(details_win, true)
+                end
+                details_win, details_buf = nil, nil
+                if showing_notifications then
+                    return
+                end
+            end
+
+            local history = notify.history()
 
             NQF.reset_session()
 
@@ -318,36 +339,21 @@ return {
             }
             table.insert(items, 1, header_item)
 
-            set_qflist(items)
+            local action = vim.fn.getqflist({ title = 1 }).title == QF_TITLE and "r" or " "
+            set_qflist(items, nil, action)
 
-            local qf_open = false
-            for _, win in ipairs(vim.api.nvim_list_wins()) do
-                if vim.bo[vim.api.nvim_win_get_buf(win)].buftype == "quickfix" then
-                    qf_open = true
-                    break
-                end
+            special_windows.prepare_for_open("notifications")
+            vim.cmd("copen")
+            local qf_info = vim.fn.getqflist({ winid = 0 })
+            local qf_win = qf_info and qf_info.winid or 0
+            if qf_win and qf_win ~= 0 and vim.api.nvim_win_is_valid(qf_win) then
+                local qf_buf = vim.api.nvim_win_get_buf(qf_win)
+                vim.bo[qf_buf].buflisted = false
+                vim.b[qf_buf].bufferline_exclude = true
             end
-
-            if not qf_open then
-                special_windows.prepare_for_open("notifications")
-                vim.cmd("copen")
-                local qf_info = vim.fn.getqflist({ winid = 0 })
-                local qf_win = qf_info and qf_info.winid or 0
-                if qf_win and qf_win ~= 0 and vim.api.nvim_win_is_valid(qf_win) then
-                    local qf_buf = vim.api.nvim_win_get_buf(qf_win)
-                    vim.bo[qf_buf].buflisted = false
-                    vim.b[qf_buf].bufferline_exclude = true
-                end
-                vim.schedule(function()
-                    vim.cmd("call SetQFSyntax()")
-                end)
-            else
-                vim.cmd("cclose")
-                if details_win and vim.api.nvim_win_is_valid(details_win) then
-                    vim.api.nvim_win_close(details_win, true)
-                    details_win, details_buf = nil, nil
-                end
-            end
+            vim.schedule(function()
+                vim.cmd("call SetQFSyntax()")
+            end)
         end, { desc = "Toggle Notifications History in quickfix (for bqf)" })
 
         local function open_float(title, lines, opts)
