@@ -137,11 +137,9 @@ return {
             local buftype = vim.bo[bufnr].buftype
             local filetype = vim.bo[bufnr].filetype
             local name = vim.api.nvim_buf_get_name(bufnr)
-            local wtype = ""
+            local wtype = nil
             if winid and vim.api.nvim_win_is_valid(winid) then
                 wtype = vim.fn.win_gettype(winid)
-            else
-                wtype = vim.fn.win_gettype()
             end
 
             local excluded_filetypes = {
@@ -167,7 +165,7 @@ return {
             if filetype and vim.tbl_contains(excluded_filetypes, filetype) then
                 return true, "excluded filetype: " .. filetype
             end
-            if wtype ~= "" and wtype ~= "normal" then
+            if wtype and wtype ~= "" and wtype ~= "normal" then
                 return true, "special window type"
             end
             if vim.b[bufnr].bufferline_exclude then
