@@ -1,8 +1,9 @@
 local M = {}
+local BLOCKWISE = ''
 
 function M.search_visual_selection()
     local mode = vim.fn.mode()
-    if mode ~= 'v' and mode ~= 'V' and mode ~= '' then
+    if mode ~= 'v' and mode ~= 'V' and mode ~= BLOCKWISE then
         return
     end
 
@@ -14,23 +15,28 @@ function M.search_visual_selection()
         start_col, end_col = end_col, start_col
     end
 
-    start_col = start_col - 1
-    end_col = end_col - 1
-
     local lines = vim.api.nvim_buf_get_lines(0, start_row - 1, end_row, false)
     if vim.tbl_isempty(lines) then return end
 
-    if mode ~= 'V' then
+    if mode == BLOCKWISE then
+        if start_col > end_col then
+            start_col, end_col = end_col, start_col
+        end
+        lines = { string.sub(lines[1], start_col, end_col) }
+    elseif mode ~= 'V' then
         if #lines == 1 then
-            lines[1] = string.sub(lines[1], start_col + 1, end_col + 1)
+            lines[1] = string.sub(lines[1], start_col, end_col)
         else
-            lines[1] = string.sub(lines[1], start_col + 1)
-            lines[#lines] = string.sub(lines[#lines], 1, end_col + 1)
+            lines[1] = string.sub(lines[1], start_col)
+            lines[#lines] = string.sub(lines[#lines], 1, end_col)
         end
     end
 
-    local search_text = table.concat(lines, "\n")
-    search_text = vim.fn.escape(search_text, '\\/.*$^~[]')
+    for i, line in ipairs(lines) do
+        lines[i] = vim.fn.escape(line, '\\/.*$^~[]')
+    end
+    local search_text = table.concat(lines, '\\n')
+    if search_text == '' then return end
 
     vim.fn.setreg('/', search_text)
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', true)
