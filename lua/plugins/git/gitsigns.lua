@@ -4,6 +4,24 @@ return {
     config = function()
         local gs = require("gitsigns")
 
+        local diff_ui = false
+        local function apply_signcolumn(win)
+            if not vim.api.nvim_win_is_valid(win) then
+                return
+            end
+            if vim.bo[vim.api.nvim_win_get_buf(win)].buftype ~= "" then
+                return
+            end
+            vim.api.nvim_set_option_value("signcolumn", diff_ui and "no" or "yes", { win = win })
+        end
+
+        vim.api.nvim_create_autocmd({ "BufWinEnter", "WinEnter" }, {
+            group = vim.api.nvim_create_augroup("gitsigns_diff_ui_signcolumn", { clear = true }),
+            callback = function()
+                apply_signcolumn(vim.api.nvim_get_current_win())
+            end,
+        })
+
         gs.setup({
             sign_priority = 6,
             update_debounce = 200,
@@ -45,14 +63,14 @@ return {
                     vim.keymap.set("n", lhs, rhs, { buffer = bufnr, noremap = true, silent = true, desc = desc })
                 end
 
-                local diff_ui = false
                 map("<leader>gt", function()
-                    diff_ui = not diff_ui
-
-                    gs.toggle_word_diff(diff_ui)
+                    diff_ui = gs.toggle_word_diff()
                     gs.toggle_numhl(diff_ui)
                     gs.toggle_linehl(diff_ui)
-                    vim.wo.signcolumn = diff_ui and "no" or "yes"
+
+                    for _, win in ipairs(vim.api.nvim_list_wins()) do
+                        apply_signcolumn(win)
+                    end
 
                     vim.notify(
                         diff_ui and "Diff UI ON" or "Diff UI OFF",
