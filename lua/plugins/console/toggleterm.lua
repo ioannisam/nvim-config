@@ -305,6 +305,7 @@ return {
 
             local bufnr = vim.api.nvim_get_current_buf()
             vim.b[bufnr].native_term = true
+            vim.keymap.set("t", "<Esc>", [[<C-\><C-n>]], { buffer = bufnr, noremap = true, silent = true })
 
             layout.refresh_neotree_buffers()
         end, { desc = "Open native terminal", noremap = true, silent = true })
@@ -324,11 +325,5 @@ return {
             end,
         })
 
-        vim.api.nvim_create_autocmd("TermOpen", {
-            pattern = "term://*",
-            callback = function(ev)
-                vim.keymap.set("t", "<Esc>", [[<C-\><C-n>]], { buffer = ev.buf, noremap = true, silent = true })
-            end,
-        })
     end,
 }
