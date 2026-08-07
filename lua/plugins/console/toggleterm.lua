@@ -310,6 +310,15 @@ return {
             layout.refresh_neotree_buffers()
         end, { desc = "Open native terminal", noremap = true, silent = true })
 
+        vim.api.nvim_create_autocmd({ "WinNew", "WinClosed" }, {
+            group = vim.api.nvim_create_augroup("toggleterm_reflow_on_layout_change", { clear = true }),
+            callback = function()
+                if #layout.get_toggleterm_wins() > 0 then
+                    layout.defer_reflow(50)
+                end
+            end,
+        })
+
         vim.api.nvim_create_autocmd("TermEnter", {
             pattern = "term://*toggleterm#*",
             callback = function()
