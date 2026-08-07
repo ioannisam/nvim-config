@@ -59,6 +59,11 @@ opt.shortmess:append("I") -- no intro message
 -- Diagnostics
 vim.diagnostic.config({
     update_in_insert = false,
+    severity_sort = true,
+    virtual_text = {
+        spacing = 2,
+        source = "if_many",
+    },
     signs = {
         text = {
             [vim.diagnostic.severity.ERROR] = '',
