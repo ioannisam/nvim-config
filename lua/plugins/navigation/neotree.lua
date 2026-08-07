@@ -711,6 +711,33 @@ return {
             end,
         })
 
+        vim.api.nvim_create_autocmd("QuitPre", {
+            group = vim.api.nvim_create_augroup("neotree_close_if_last", { clear = true }),
+            callback = function()
+                if vim.bo.filetype == "neo-tree" then
+                    return
+                end
+
+                local tree_wins, other_wins = {}, 0
+                for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+                    local ok, cfg = pcall(vim.api.nvim_win_get_config, win)
+                    if ok and cfg and (not cfg.relative or cfg.relative == "") then
+                        if vim.bo[vim.api.nvim_win_get_buf(win)].filetype == "neo-tree" then
+                            table.insert(tree_wins, win)
+                        else
+                            other_wins = other_wins + 1
+                        end
+                    end
+                end
+
+                if #tree_wins > 0 and other_wins == 1 then
+                    for _, win in ipairs(tree_wins) do
+                        pcall(vim.api.nvim_win_close, win, true)
+                    end
+                end
+            end,
+        })
+
         apply_neotree_orange_highlights()
         vim.api.nvim_create_autocmd("ColorScheme", {
             callback = function()
