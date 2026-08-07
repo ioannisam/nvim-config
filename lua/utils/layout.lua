@@ -117,14 +117,13 @@ function M.reflow_layout()
     local remaining_cols = math.max(total_cols - neotree_width - separator, 1)
 
     if term_count > 0 then
-        -- Explicitly resize the main editor column only when terminals are present,
-        -- so side panels (Copilot Chat, etc.) are not squeezed by unrelated reflows.
         local main_win = M.get_main_win()
+        local avail = remaining_cols
         if main_win and vim.api.nvim_win_is_valid(main_win) then
-            pcall(vim.api.nvim_win_set_width, main_win, remaining_cols)
+            avail = vim.api.nvim_win_get_width(main_win)
         end
 
-        local each_width = math.floor(remaining_cols / term_count)
+        local each_width = math.floor(avail / term_count)
         for _, win in ipairs(term_wins) do
             if vim.api.nvim_win_is_valid(win) then
                 pcall(vim.api.nvim_win_set_width, win, math.max(1, each_width))
