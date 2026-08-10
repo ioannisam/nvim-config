@@ -5,6 +5,11 @@ BASE=main
 DRY_RUN=0
 AUTOSTASH=0
 LOCKFILE=lazy-lock.json
+
+declare -a SHARED_PATHS=(
+    "lua/utils/special_windows.lua"
+    "lua/utils/layout.lua"
+)
 declare -a BRANCHES=()
 
 usage() {
@@ -80,6 +85,14 @@ deleted_by_them() {
     [[ "$stages" == *2* && "$stages" != *3* ]]
 }
 
+shared_path() {
+    local f=$1 p
+    for p in "${SHARED_PATHS[@]}"; do
+        [[ "$f" == "$p" ]] && return 0
+    done
+    return 1
+}
+
 lockfile_mergeable() {
     [[ "$1" == "$LOCKFILE" ]] && command -v python3 >/dev/null 2>&1
 }
@@ -142,6 +155,31 @@ PY
     return $rc
 }
 
+tier_deletion_patch() {
+    local path=$1 mode=$2 tmp rc=1
+    tmp=$(mktemp -d)
+    if ! git show ":1:$path" > "$tmp/base"   2>/dev/null ||
+       ! git show ":2:$path" > "$tmp/ours"   2>/dev/null ||
+       ! git show ":3:$path" > "$tmp/theirs" 2>/dev/null; then
+        rm -rf "$tmp"; return 1
+    fi
+
+    diff -u "$tmp/base" "$tmp/theirs" > "$tmp/tier.patch" || true
+    if grep -q '^+[^+]' "$tmp/tier.patch"; then
+        rm -rf "$tmp"; return 1   # the tier adds lines too -- not a pure trim
+    fi
+
+    cp "$tmp/ours" "$tmp/result"
+    local -a opts=(--silent --no-backup-if-mismatch -l -F 3)
+    [[ "$mode" == "check" ]] && opts+=(--dry-run)
+    if patch "${opts[@]}" "$tmp/result" < "$tmp/tier.patch" >/dev/null 2>&1; then
+        [[ "$mode" == "apply" ]] && cp "$tmp/result" "$path"
+        rc=0
+    fi
+    rm -rf "$tmp"
+    return $rc
+}
+
 if [[ $DRY_RUN -eq 1 ]]; then
     info "Dry run: rebasing onto '$BASE' ($(git rev-parse --short "$BASE"))"
     for b in "${BRANCHES[@]}"; do
@@ -196,7 +234,7 @@ done
 info "Saved pre-rebase positions to $BACKUP"
 
 rebase_one() {
-    local branch=$1 auto=0 locks=0 guard=0
+    local branch=$1 auto=0 locks=0 trimmed=0 kept=0 guard=0
 
     git checkout --quiet "$branch"
 
@@ -212,7 +250,7 @@ rebase_one() {
             return 1
         fi
 
-        local -a unmerged=() resolvable=() lockfiles=() stuck=()
+        local -a unmerged=() resolvable=() shared=() lockfiles=() trims=() stuck=()
         mapfile -t unmerged < <(git diff --name-only --diff-filter=U)
 
         if [[ ${#unmerged[@]} -eq 0 ]]; then
@@ -227,8 +265,12 @@ rebase_one() {
         for f in "${unmerged[@]}"; do
             if deleted_by_them "$f"; then
                 resolvable+=("$f")
+            elif shared_path "$f"; then
+                shared+=("$f")
             elif lockfile_mergeable "$f"; then
                 lockfiles+=("$f")
+            elif tier_deletion_patch "$f" check; then
+                trims+=("$f")
             else
                 stuck+=("$f")
             fi
@@ -243,6 +285,23 @@ rebase_one() {
         for f in "${resolvable[@]}"; do
             git rm --quiet --force -- "$f"
             auto=$((auto + 1))
+        done
+
+        for f in "${shared[@]}"; do
+            git checkout --ours -- "$f"
+            git add -- "$f"
+            kept=$((kept + 1))
+            warn "$branch: kept the base's version of $f (shared across tiers)"
+        done
+
+        for f in "${trims[@]}"; do
+            if ! tier_deletion_patch "$f" apply; then
+                fail "$branch: could not re-apply the tier's deletion to $f"
+                return 1
+            fi
+            git add -- "$f"
+            trimmed=$((trimmed + 1))
+            warn "$branch: re-applied the tier's own deletion to $f"
         done
 
         for f in "${lockfiles[@]}"; do
@@ -263,7 +322,7 @@ rebase_one() {
         fi
     done
 
-    ok "$branch (auto-resolved $auto modify/delete conflict(s) as deleted, merged $locks lockfile(s))"
+    ok "$branch (auto-resolved $auto modify/delete conflict(s) as deleted, replayed $trimmed tier trim(s), kept $kept shared file(s), merged $locks lockfile(s))"
     return 0
 }
 
