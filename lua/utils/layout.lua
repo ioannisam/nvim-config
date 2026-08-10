@@ -60,15 +60,13 @@ local function is_terminal_win(win)
         or (vim.b[buf].native_term == true and vim.bo[buf].buftype == "terminal")
 end
 
--- Return the best editor window in current tab (largest width), ignoring
--- Neo-tree and terminals so a full-width terminal cannot be mistaken for it.
+-- Return the best editor window in current tab (largest width).
 function M.get_main_win()
-    local neotree_win = M.get_neotree_win()
     local best = nil
     local best_w = -1
     for _, win in ipairs(tab_wins()) do
-        local buf = win ~= neotree_win and win_buf(win) or nil
-        if buf and not is_floating(win) and vim.bo[buf].filetype ~= "neo-tree" and not is_terminal_win(win) then
+        local buf = win_buf(win)
+        if buf and not is_floating(win) and vim.bo[buf].buftype == "" then
             local w = vim.api.nvim_win_get_width(win)
             if w > best_w then
                 best_w = w
@@ -79,24 +77,28 @@ function M.get_main_win()
     return best
 end
 
-function M.confine_terminals_to_main()
-    if not M.get_neotree_win() then
+-- Move a full-width window into the main editor column, so it stops spanning underneath the side panels.
+function M.confine_to_main(win)
+    if not win or not vim.api.nvim_win_is_valid(win) then
         return
     end
 
     local main = M.get_main_win()
-    if not main or not vim.api.nvim_win_is_valid(main) then
+    if not main or not vim.api.nvim_win_is_valid(main) or win == main then
         return
     end
 
+    if
+        vim.api.nvim_win_get_width(main) < vim.o.columns
+        and vim.api.nvim_win_get_width(win) >= vim.o.columns
+    then
+        pcall(vim.fn.win_splitmove, win, main, { vertical = false, rightbelow = true })
+    end
+end
+
+function M.confine_terminals_to_main()
     for _, win in ipairs(M.get_toggleterm_wins()) do
-        if
-            win ~= main
-            and vim.api.nvim_win_is_valid(win)
-            and vim.api.nvim_win_get_width(win) >= vim.o.columns
-        then
-            pcall(vim.fn.win_splitmove, win, main, { vertical = false, rightbelow = true })
-        end
+        M.confine_to_main(win)
     end
 end
 

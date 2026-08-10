@@ -51,6 +51,10 @@ return {
         {
             "<leader>o",
             function()
+                local special_windows = require("utils.special_windows")
+                if not special_windows.is_open("aerial") then
+                    special_windows.prepare_for_open("aerial")
+                end
                 if vim.bo.buftype ~= "" then
                     local best, best_area = nil, -1
                     for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do

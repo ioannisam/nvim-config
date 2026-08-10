@@ -35,6 +35,9 @@ local function get_win_kind(win)
     end
 
     if bt == "quickfix" then
+        if vim.b[buf].notifications_qf == true then
+            return "notifications"
+        end
         local title = vim.fn.getqflist({ title = 1 }).title
         if title == "Notifications" then
             return "notifications"
@@ -60,6 +63,10 @@ local function get_win_kind(win)
         return "copilotchat"
     end
 
+    if ft == "aerial" then
+        return "aerial"
+    end
+
     return nil
 end
 
@@ -77,6 +84,8 @@ local function close_kind(kind)
         pcall(vim.cmd, "silent! UndotreeHide")
     elseif kind == "trouble" then
         pcall(vim.cmd, "silent! Trouble close")
+    elseif kind == "aerial" then
+        pcall(vim.cmd, "silent! AerialClose")
     elseif kind == "copilotchat" then
         pcall(function()
             require("CopilotChat").close()
@@ -101,44 +110,34 @@ local function close_kind(kind)
     end
 end
 
+-- Edge panels keep their column; bottom panels share the main editor column and
+-- so replace one another; anything else takes the tab to itself.
+local SIDE = { neotree = true, aerial = true }
+local BOTTOM = { toggleterm = true, notifications = true, trouble = true }
+
 local function should_close(kind, target_kind)
     if kind == target_kind then
         return false
     end
 
-    if target_kind == "toggleterm" then
-        return kind ~= "neotree"
+    if SIDE[target_kind] then
+        return not (SIDE[kind] or BOTTOM[kind])
     end
 
-    if target_kind == "notifications" then
-        return kind ~= "neotree"
-    end
-
-    if target_kind == "neotree" then
-        return kind ~= "toggleterm" and kind ~= "notifications"
+    if BOTTOM[target_kind] then
+        return not SIDE[kind]
     end
 
     return true
 end
 
 function M.prepare_for_open(target_kind)
-    if target_kind == "toggleterm" then
-        close_kind("notifications")
-    elseif target_kind == "notifications" then
-        close_kind("toggleterm")
-    end
-
     local present = {}
     for _, win in ipairs(tab_wins()) do
         local kind = get_win_kind(win)
         if kind then
             present[kind] = true
         end
-    end
-
-    if target_kind == "neotree" and present.toggleterm and present.notifications then
-        close_kind("notifications")
-        present.notifications = nil
     end
 
     for kind, _ in pairs(present) do

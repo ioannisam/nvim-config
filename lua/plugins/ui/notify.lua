@@ -347,9 +347,11 @@ return {
             local qf_info = vim.fn.getqflist({ winid = 0 })
             local qf_win = qf_info and qf_info.winid or 0
             if qf_win and qf_win ~= 0 and vim.api.nvim_win_is_valid(qf_win) then
+                require("utils.layout").confine_to_main(qf_win)
                 local qf_buf = vim.api.nvim_win_get_buf(qf_win)
                 vim.bo[qf_buf].buflisted = false
                 vim.b[qf_buf].bufferline_exclude = true
+                vim.b[qf_buf].notifications_qf = true
             end
             vim.schedule(function()
                 vim.cmd("call SetQFSyntax()")
