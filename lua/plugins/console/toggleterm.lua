@@ -320,6 +320,7 @@ return {
         })
 
         vim.api.nvim_create_autocmd("TermEnter", {
+            group = vim.api.nvim_create_augroup("toggleterm_resize_keys", { clear = true }),
             pattern = "term://*toggleterm#*",
             callback = function()
                 vim.keymap.set("n", "<leader><Up>", function()

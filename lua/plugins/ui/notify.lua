@@ -467,6 +467,7 @@ return {
         end
 
         vim.api.nvim_create_autocmd("FileType", {
+            group = vim.api.nvim_create_augroup("notify_qf_keymaps", { clear = true }),
             pattern = "qf",
             callback = function(args)
                 local title = vim.fn.getqflist({ title = 1 }).title

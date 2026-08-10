@@ -697,6 +697,7 @@ return {
         })
 
         vim.api.nvim_create_autocmd("BufWinLeave", {
+            group = vim.api.nvim_create_augroup("neotree_reflow_on_close", { clear = true }),
             callback = function(ev)
                 if vim.api.nvim_buf_is_valid(ev.buf) and vim.bo[ev.buf].filetype == "neo-tree" then
                     layout.defer_reflow(50)
@@ -740,6 +741,7 @@ return {
 
         apply_neotree_orange_highlights()
         vim.api.nvim_create_autocmd("ColorScheme", {
+            group = vim.api.nvim_create_augroup("neotree_highlights", { clear = true }),
             callback = function()
                 apply_neotree_orange_highlights()
             end,

@@ -30,7 +30,10 @@ return {
             return false
         end
 
+        local session_group = vim.api.nvim_create_augroup("persistence_session", { clear = true })
+
         vim.api.nvim_create_autocmd("User", {
+            group = session_group,
             pattern = "PersistenceSavePre",
             callback = function()
                 for _, buf in ipairs(vim.api.nvim_list_bufs()) do
@@ -46,6 +49,7 @@ return {
         })
 
         vim.api.nvim_create_autocmd("User", {
+            group = session_group,
             pattern = "PersistenceSavePost",
             callback = function()
                 local session_file = require("persistence").current()

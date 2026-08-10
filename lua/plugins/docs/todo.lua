@@ -78,6 +78,7 @@ return {
         vim.keymap.set("n", "<leader>cq", "<cmd>TodoQuickFix<CR>", { desc = "Todo: Quickfix List" })
 
         vim.api.nvim_create_autocmd("FileType", {
+            group = vim.api.nvim_create_augroup("todo_qf_close", { clear = true }),
             pattern = "qf",
             callback = function(args)
                 if vim.fn.getqflist({ title = 1 }).title == "Notifications" then
