@@ -50,7 +50,7 @@ local function get_win_kind(win)
 
     if ft == "undotree" or ft == "diff" then
         local name = vim.api.nvim_buf_get_name(buf)
-        if name:find("undotree", 1, true) then
+        if name:find("undotree_", 1, true) or name:find("diffpanel_", 1, true) then
             return "undotree"
         end
     end
@@ -110,25 +110,37 @@ local function close_kind(kind)
     end
 end
 
--- Edge panels keep their column; bottom panels share the main editor column and
--- so replace one another; anything else takes the tab to itself.
-local SIDE = { neotree = true, aerial = true }
-local BOTTOM = { toggleterm = true, notifications = true, trouble = true }
+-- Panels are grouped by the edge they occupy. Only one panel per group can be
+-- open at a time; panels from different groups coexist. Bottom panels are
+-- confined to the main editor column, so they concede width to both sides.
+local OCCUPIES = {
+    neotree = { left = true },
+    undotree = { left = true, bottom = true },
+    aerial = { right = true },
+    copilotchat = { right = true },
+    spectre = { right = true },
+    toggleterm = { bottom = true },
+    notifications = { bottom = true },
+    trouble = { bottom = true },
+}
 
 local function should_close(kind, target_kind)
     if kind == target_kind then
         return false
     end
 
-    if SIDE[target_kind] then
-        return not (SIDE[kind] or BOTTOM[kind])
+    local occupied, wanted = OCCUPIES[kind], OCCUPIES[target_kind]
+    if not occupied or not wanted then
+        return true
     end
 
-    if BOTTOM[target_kind] then
-        return not SIDE[kind]
+    for region in pairs(occupied) do
+        if wanted[region] then
+            return true
+        end
     end
 
-    return true
+    return false
 end
 
 function M.prepare_for_open(target_kind)

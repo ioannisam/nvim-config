@@ -92,7 +92,10 @@ function M.confine_to_main(win)
         vim.api.nvim_win_get_width(main) < vim.o.columns
         and vim.api.nvim_win_get_width(win) >= vim.o.columns
     then
-        pcall(vim.fn.win_splitmove, win, main, { vertical = false, rightbelow = true })
+        local height = vim.api.nvim_win_get_height(win)
+        if pcall(vim.fn.win_splitmove, win, main, { vertical = false, rightbelow = true }) then
+            pcall(vim.api.nvim_win_set_height, win, height)
+        end
     end
 end
 

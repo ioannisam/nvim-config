@@ -67,21 +67,28 @@ return {
                 },
             },
         },
+        config = function(_, opts)
+            require("CopilotChat").setup(opts)
+
+            vim.api.nvim_create_autocmd({ "BufWinEnter", "WinNew" }, {
+                group = vim.api.nvim_create_augroup("copilotchat_fix_width", { clear = true }),
+                callback = function()
+                    for _, win in ipairs(vim.api.nvim_list_wins()) do
+                        local buf = vim.api.nvim_win_get_buf(win)
+                        if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].filetype == "copilot-chat" then
+                            pcall(vim.api.nvim_set_option_value, "winfixwidth", true, { win = win })
+                        end
+                    end
+                end,
+            })
+        end,
         keys = {
             {
                 "<leader>cc",
                 function()
                     local special_windows = require("utils.special_windows")
-                    if special_windows.is_open("copilotchat") then
-                        require("CopilotChat").toggle()
-                        return
-                    end
-
-                    local had_neotree = special_windows.is_open("neotree")
-                    special_windows.prepare_for_open("copilotchat")
-
-                    if had_neotree then
-                        vim.cmd("wincmd =")
+                    if not special_windows.is_open("copilotchat") then
+                        special_windows.prepare_for_open("copilotchat")
                     end
 
                     vim.schedule(function()
