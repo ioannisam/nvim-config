@@ -4,6 +4,8 @@ return {
     config = function()
 
 
+        local filetypes = require("utils.filetypes")
+
         local function is_special_buffer()
             local buftype = vim.bo.buftype or ""
             local filetype = vim.bo.filetype or ""
@@ -17,26 +19,7 @@ return {
                 return true
             end
 
-            local excluded_filetypes = {
-                "neo-tree", "NvimTree", "undotree",
-                "spectre", "spectre_panel",
-                "TelescopePrompt", "TelescopeResults",
-                "dap-repl", "dapui", "dapui_scopes", "dapui_breakpoints",
-                "dapui_stacks", "dapui_watches",
-                "qf", "Trouble", "Outline", "neotest-summary",
-                "help", "man", "lspinfo",
-                "gitcommit", "alpha", "noice", "copilot",
-                "lazy", "mason",
-                "fugitive", "notify",
-                -- terminal types
-                "terminal", "toggleterm"
-            }
-
-            if vim.tbl_contains(excluded_filetypes, filetype) then
-                return true
-            end
-
-            return false
+            return filetypes.contains(filetype) or filetype == "terminal"
         end
 
         local mc = require("multicursor-nvim")

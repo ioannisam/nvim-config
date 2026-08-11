@@ -21,7 +21,7 @@ return {
             compress_after = 3,
             clear_after = 3,
             disable = {
-                filetypes = { "alpha", "lazy", "neo-tree", "TelescopePrompt", "typr" },
+                filetypes = require("utils.filetypes").with(),
                 buftypes = {},
                 events = false,
             },

@@ -13,18 +13,7 @@ return {
                 'treesitter',
                 'regex',
             },
-            filetypes_denylist = {
-                'dirvish',
-                'fugitive',
-                'alpha',
-                'NvimTree',
-                'lazy',
-                'TelescopePrompt',
-                'spectre_panel',
-                'toggleterm',
-                'DressingSelect',
-                'neo-tree',
-            },
+            filetypes_denylist = require("utils.filetypes").with({ "dirvish" }),
         })
     end
 }

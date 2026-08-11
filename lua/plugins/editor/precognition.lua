@@ -23,17 +23,7 @@ return {
             PrevParagraph = { text = "{", prio = 8 },
             NextParagraph = { text = "}", prio = 8 },
         },
-        disabled_fts = {
-            "alpha",
-            "lazy",
-            "neo-tree",
-            "TelescopePrompt",
-            "spectre_panel",
-            "toggleterm",
-            "undotree",
-            "typr",
-            "aerial",
-        },
+        disabled_fts = require("utils.filetypes").with(),
     },
     keys = {
         {

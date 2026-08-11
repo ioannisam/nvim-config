@@ -32,10 +32,7 @@ return {
                 },
 
                 exclude = {
-                    filetypes = {
-                        "help", "terminal", "toggleterm", "dashboard", "lazy", "NvimTree",
-                        "Trouble", "alpha", "neo-tree", "Outline"
-                    },
+                    filetypes = require("utils.filetypes").with({ "terminal" }),
                     buftypes = { "terminal", "nofile" },
                 },
             })

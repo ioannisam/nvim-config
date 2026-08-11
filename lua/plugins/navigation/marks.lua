@@ -8,17 +8,7 @@ return {
         force_write_shada = false,
         refresh_interval = 250,
         sign_priority = { lower = 10, upper = 15, builtin = 8, bookmark = 20 },
-        excluded_filetypes = {
-            "alpha",
-            "lazy",
-            "neo-tree",
-            "TelescopePrompt",
-            "spectre_panel",
-            "toggleterm",
-            "undotree",
-            "aerial",
-            "typr",
-        },
+        excluded_filetypes = require("utils.filetypes").with(),
         excluded_buftypes = { "nofile", "quickfix", "terminal" },
     },
     keys = {
