@@ -10,6 +10,8 @@ This document lists the keymaps of this configuration across different plugins a
 | n | `<leader>w` | General | Switch window. |
 | n | `<leader>n` | Neotree | Toggle Neo-tree. |
 | n | `<leader>u` | General | Toggle UndoTree. |
+| n | `<leader>J` | General | Join lines (`J` belongs to vim-move). |
+| x | `<leader>J` | General | Join selected lines. |
 | n | `<leader>o` | General | Toggle symbol outline (Aerial). |
 | n | `<leader>p` | General | Toggle Precognition motion hints. |
 | n | `<leader>k` | General | Toggle Screenkey overlay. |
@@ -24,7 +26,7 @@ This document lists the keymaps of this configuration across different plugins a
 | n | `<leader>ha` | Harpoon | Add file to Harpoon. |
 | n | `<leader>hc` | Harpoon | Clear Harpoon marks. |
 | n | `<leader>hm` | Harpoon | Open Harpoon menu. |
-| n | `<leader>hd` | Harpoon | Delete Harpoon mark. |
+| n | `<leader>hd` | Harpoon | Delete Harpoon marks (multi-select). |
 | n | `<leader>tn` | Terminal | New horizontal terminal. |
 | n | `<leader>th` | Terminal | Toggle horizontal terminals. |
 | n | `<leader>tr` | Terminal | Rename terminal. |
@@ -380,12 +382,12 @@ Movement uses ordinary cursor motions, so `hjkl` and the arrow keys both work.
 | n | `qi` | nvim-lspconfig | LSP hover docs (buffer-local). |
 | n | `gr` | nvim-lspconfig | LSP references (buffer-local). |
 | n | `gcd` | Comment.nvim | Trim comment marker on current line. |
-| v | `gd` | Comment.nvim | Trim comment markers in selection. |
+| x | `gcd` | Comment.nvim | Trim comment markers in selection. |
 | n | `tt` | treesj | TreeSJ toggle split/join. |
 | n | `tj` | treesj | TreeSJ join. |
 | n | `ts` | treesj | TreeSJ split. |
-| n | `zO` | nvim-ufo | Open all folds (ufo). |
-| n | `zC` | nvim-ufo | Close all folds (ufo). |
+| n | `zR` | nvim-ufo | Open all folds (ufo). |
+| n | `zM` | nvim-ufo | Close all folds (ufo). |
 | n | `+` | dial.nvim | Dial increment. |
 | n | `-` | dial.nvim | Dial decrement. |
 | v | `+` | dial.nvim | Dial increment (visual, keep selection). |
