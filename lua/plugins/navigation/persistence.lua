@@ -69,8 +69,8 @@ return {
                 return
             end
 
-            local deleter = require("utils.deleter")
-            deleter.multiselect(sessions, {
+            local picker = require("utils.picker")
+            picker.multiselect(sessions, {
                 prompt = "Select sessions to delete:",
                 format_item = function(item)
                     return vim.fn.fnamemodify(item, ":t")

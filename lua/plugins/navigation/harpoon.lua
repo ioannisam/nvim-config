@@ -1,39 +1,39 @@
 return {
-	"ThePrimeagen/harpoon",
-	branch = "harpoon2",
-	dependencies = {
-		"nvim-lua/plenary.nvim",
-		"nvim-tree/nvim-web-devicons",
-		"nvim-telescope/telescope.nvim",
-		"rcarriga/nvim-notify",
-	},
-	config = function()
-		local harpoon = require("harpoon")
+    "ThePrimeagen/harpoon",
+    branch = "harpoon2",
+    dependencies = {
+        "nvim-lua/plenary.nvim",
+        "nvim-tree/nvim-web-devicons",
+        "nvim-telescope/telescope.nvim",
+        "rcarriga/nvim-notify",
+    },
+    config = function()
+        local harpoon = require("harpoon")
 
-		harpoon:setup({
-			settings = {
-				save_on_toggle = true,
-				sync_on_ui_close = true,
-				key = function()
-					return vim.uv.cwd()
-				end,
-			},
-		})
+        harpoon:setup({
+            settings = {
+                save_on_toggle = true,
+                sync_on_ui_close = true,
+                key = function()
+                    return vim.uv.cwd()
+                end,
+            },
+        })
 
-		vim.keymap.set("n", "<leader>ha", function()
-			harpoon:list():add()
-			vim.notify("Harpooned file", vim.log.levels.INFO, { title = "Harpoon 󰛢" })
-		end, { desc = "Harpoon Add File" })
-		vim.keymap.set("n", "<leader>hc", function()
-			harpoon:list():clear()
+        vim.keymap.set("n", "<leader>ha", function()
+            harpoon:list():add()
+            vim.notify("Harpooned file", vim.log.levels.INFO, { title = "Harpoon 󰛢" })
+        end, { desc = "Harpoon Add File" })
+
+        vim.keymap.set("n", "<leader>hc", function()
+            harpoon:list():clear()
             vim.notify("Cleared all harpoons", vim.log.levels.INFO, { title = "Harpoon 󰛢" })
-		end, { desc = "Clear all Harpoon marks" })
+        end, { desc = "Clear all Harpoon marks" })
 
         local pickers = require("telescope.pickers")
         local finders = require("telescope.finders")
         local conf = require("telescope.config").values
         local actions = require("telescope.actions")
-        local action_state = require("telescope.actions.state")
 
         vim.keymap.set("n", "<leader>hm", function()
             local list = harpoon:list()
@@ -52,7 +52,7 @@ return {
                         local icon = require("nvim-web-devicons").get_icon(name, nil, { default = true })
                         return {
                             value = entry.value,
-                            display = string.format("%s %s", icon or "", name),
+                            display = string.format("%s %s", icon or "", name),
                             ordinal = name,
                             filename = entry.value,
                         }
@@ -67,34 +67,16 @@ return {
                     map("n", "<S-Tab>", actions.toggle_selection + actions.move_selection_previous)
 
                     actions.select_default:replace(function()
-                        local picker = action_state.get_current_picker(prompt_bufnr)
-                        local selections = picker:get_multi_selection()
-                        local current_entry = action_state.get_selected_entry()
+                        local chosen = require("utils.picker").resolve_selection(prompt_bufnr, {
+                            identity = function(entry)
+                                return entry.value
+                            end,
+                        })
 
                         actions.close(prompt_bufnr)
 
-                        if #selections == 0 and not current_entry then
-                            return
-                        end
-
-                        local selected_files = {}
-                        if #selections > 0 then
-                            local found = false
-                            for _, entry in ipairs(selections) do
-                                table.insert(selected_files, entry.value)
-                                if current_entry and entry.value == current_entry.value then
-                                    found = true
-                                end
-                            end
-                            if not found and current_entry then
-                                table.insert(selected_files, current_entry.value)
-                            end
-                        else
-                            table.insert(selected_files, current_entry.value)
-                        end
-
-                        for _, file in ipairs(selected_files) do
-                            vim.cmd("edit " .. vim.fn.fnameescape(file))
+                        for _, entry in ipairs(chosen) do
+                            vim.cmd("edit " .. vim.fn.fnameescape(entry.value))
                         end
                     end)
 
@@ -121,18 +103,20 @@ return {
                 })
             end
 
-            vim.ui.select(items, {
-                prompt = "Delete harpoon:",
+            require("utils.picker").multiselect(items, {
+                prompt = "Select harpoons to delete:",
                 format_item = function(x)
                     return string.format("[%d] %s", x.idx, x.path)
                 end,
-            }, function(choice)
-                    if not choice then
-                        return
-                    end
+            }, function(selected)
+                table.sort(selected, function(a, b)
+                    return a.idx > b.idx
+                end)
+                for _, choice in ipairs(selected) do
                     list:remove_at(choice.idx)
                     vim.notify("Deleted harpoon " .. choice.idx, vim.log.levels.INFO, { title = "Harpoon 󰛢" })
-                end)
-        end, { desc = "Delete a Harpoon mark", noremap = true, silent = true })
+                end
+            end)
+        end, { desc = "Delete Harpoon marks", noremap = true, silent = true })
     end,
 }

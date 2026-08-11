@@ -14,45 +14,25 @@ return {
         local actions = require("telescope.actions")
         local action_state = require("telescope.actions.state")
 
+        local function entry_file(entry)
+            return entry and (entry.filename or entry.value) or nil
+        end
+
         local function open_selected_or_current(prompt_bufnr)
-            local picker = action_state.get_current_picker(prompt_bufnr)
-            local selections = picker:get_multi_selection()
-            local current_entry = action_state.get_selected_entry()
+            local chosen = require("utils.picker").resolve_selection(prompt_bufnr, {
+                identity = entry_file,
+                allow = function(entry)
+                    return entry_file(entry) ~= nil
+                end,
+            })
+
             actions.close(prompt_bufnr)
 
-            if vim.tbl_isempty(selections) and not current_entry then
-                return
-            end
-
-            local function entry_file(entry)
-                return entry and (entry.filename or entry.value) or nil
-            end
-
-            local selected_files = {}
-            local current_file = entry_file(current_entry)
-
-            if not vim.tbl_isempty(selections) then
-                local found = false
-                for _, entry in ipairs(selections) do
-                    local file = entry_file(entry)
-                    if file then
-                        table.insert(selected_files, { file = file, lnum = entry.lnum, col = entry.col })
-                        if file == current_file then
-                            found = true
-                        end
-                    end
-                end
-                if not found and current_file then
-                    table.insert(selected_files, { file = current_file, lnum = current_entry.lnum, col = current_entry.col })
-                end
-            elseif current_file then
-                table.insert(selected_files, { file = current_file, lnum = current_entry.lnum, col = current_entry.col })
-            end
-
-            for _, entry in ipairs(selected_files) do
-                vim.cmd("edit " .. vim.fn.fnameescape(entry.file))
+            for _, entry in ipairs(chosen) do
+                vim.cmd("edit " .. vim.fn.fnameescape(entry_file(entry)))
                 if entry.lnum then
-                    vim.api.nvim_win_set_cursor(0, { entry.lnum, entry.col or 0 })
+                    local col = math.max((entry.col or 1) - 1, 0)
+                    pcall(vim.api.nvim_win_set_cursor, 0, { entry.lnum, col })
                 end
             end
         end
