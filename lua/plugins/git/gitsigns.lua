@@ -83,18 +83,40 @@ return {
                 map("<leader>gp", function() gs.nav_hunk("prev") end, "Git: Previous hunk")
                 map("<leader>gd", gs.preview_hunk_inline, "Git: Preview hunk inline")
 
+                local ignored_floats = { notify = true, noice = true, notifydetails = true }
+
+                local function is_preview_float(win, before)
+                    if before[win] or not vim.api.nvim_win_is_valid(win) then
+                        return false
+                    end
+
+                    local ok, config = pcall(vim.api.nvim_win_get_config, win)
+                    if not ok or config.relative == "" then
+                        return false
+                    end
+
+                    local wbuf = vim.api.nvim_win_get_buf(win)
+                    return not ignored_floats[vim.bo[wbuf].filetype]
+                end
+
                 map("<leader>gD", function()
+                    local before = {}
+                    for _, win in ipairs(vim.api.nvim_list_wins()) do
+                        before[win] = true
+                    end
+
                     gs.preview_hunk()
 
                     vim.defer_fn(function()
                         for _, win in ipairs(vim.api.nvim_list_wins()) do
-                            local config = vim.api.nvim_win_get_config(win)
-                            if config.relative ~= "" then
+                            if is_preview_float(win, before) then
                                 vim.api.nvim_set_current_win(win)
                                 vim.keymap.set("n", "<Esc>", function()
-                                    vim.api.nvim_win_close(win, true)
+                                    if vim.api.nvim_win_is_valid(win) then
+                                        vim.api.nvim_win_close(win, true)
+                                    end
                                 end, { buffer = vim.api.nvim_win_get_buf(win), nowait = true })
-                                break
+                                return
                             end
                         end
                     end, 20)
