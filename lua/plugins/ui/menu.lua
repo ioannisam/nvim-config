@@ -7,17 +7,53 @@ return {
             { "nvzone/minty", cmd = { "Shades", "Huefy" } },
         },
         config = function()
-            local function get_contextual_menu()
-                local winid = vim.fn.getmousepos().winid
+            local function line_has_hunk(bufnr, lnum)
+                if not lnum or lnum < 1 then
+                    return false
+                end
+
+                local ok, gs = pcall(require, "gitsigns")
+                if not ok or type(gs.get_hunks) ~= "function" then
+                    return false
+                end
+
+                local ok_hunks, hunks = pcall(gs.get_hunks, bufnr)
+                if not ok_hunks or type(hunks) ~= "table" then
+                    return false
+                end
+
+                for _, hunk in ipairs(hunks) do
+                    local added = hunk.added
+                    if added and added.start then
+                        local first = added.start
+                        local last = first + math.max(added.count or 0, 1) - 1
+                        if lnum >= first and lnum <= last then
+                            return true
+                        end
+                    end
+                end
+
+                return false
+            end
+
+            local function menu_for(pos)
+                local winid = pos and pos.winid or 0
+                if winid == 0 or not vim.api.nvim_win_is_valid(winid) then
+                    return "default"
+                end
+
                 local buf = vim.api.nvim_win_get_buf(winid)
                 local ft = vim.bo[buf].filetype
 
-                local menu_name = ({
-                    ["neo-tree"] = "neo-tree",
-                    ["gitsigns"] = "gitsigns",
-                })[ft] or "default"
+                if ft == "neo-tree" then
+                    return "neo-tree"
+                end
 
-                return menu_name
+                if line_has_hunk(buf, pos.line) then
+                    return "gitsigns"
+                end
+
+                return "default"
             end
 
             vim.keymap.set({ "n", "v" }, "<RightMouse>", function()
@@ -28,14 +64,16 @@ return {
                 end
 
                 require("menu.utils").delete_old_menus()
-                require("menu").open(get_contextual_menu(), { mouse = true })
+                require("menu").open(menu_for(pos), { mouse = true })
             end, { desc = "Open contextual menu (mouse)" })
 
             vim.keymap.set("n", "<leader>mm", function()
                 require("menu.utils").delete_old_menus()
-                require("menu").open(get_contextual_menu())
+                require("menu").open(menu_for({
+                    winid = vim.api.nvim_get_current_win(),
+                    line = vim.fn.line("."),
+                }))
             end, { desc = "Open contextual menu (keyboard)" })
-
         end,
     },
 }
