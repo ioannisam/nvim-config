@@ -10,11 +10,29 @@ return {
 
         local function relative_path(full_path)
             local cwd = vim.uv.cwd()
-            if cwd and vim.startswith(full_path, cwd) then
-                return full_path:sub(#cwd + 2)
+            if cwd then
+                if not vim.endswith(cwd, "/") then
+                    cwd = cwd .. "/"
+                end
+                if vim.startswith(full_path, cwd) then
+                    return full_path:sub(#cwd + 1)
+                end
             end
 
             return vim.fn.fnamemodify(full_path, ":~:.")
+        end
+
+        local function state_root(state)
+            local dir = state and state.path
+            if type(dir) == "string" and vim.fn.isdirectory(dir) == 1 then
+                return dir
+            end
+            return vim.uv.cwd()
+        end
+
+        local function git_exec(state, cmd)
+            local res = vim.system(cmd, { cwd = state_root(state), text = true }):wait()
+            return res.code == 0, (res.stderr or "") .. (res.stdout or "")
         end
 
         local function git_confirm(message, on_confirmed)
@@ -44,12 +62,10 @@ return {
 
         local last_neotree_source = "filesystem"
         local function toggle_last_neotree()
-            local special_windows = require("utils.special_windows")
-            if not special_windows.is_open("neotree") then
-                special_windows.prepare_for_open("neotree")
-            end
             local src = last_neotree_source or "filesystem"
-            require("neo-tree.command").execute({ toggle = true, source = src })
+            require("utils.special_windows").open("neotree", function()
+                require("neo-tree.command").execute({ toggle = true, source = src, position = "left" })
+            end)
         end
 
         local get_multiselect_state
@@ -60,37 +76,18 @@ return {
             local opts = options or {}
             local selected, _ = get_multiselect_state(state)
             local current = state.tree:get_node()
-            local current_path = current and current.path or nil
-            local include_current_if_missing = opts.include_current_if_missing == true
-            local allow = opts.allow or function(path)
-                return type(path) == "string"
-            end
 
             local paths = {}
-            local seen = {}
-
-            if #selected.order > 0 then
-                local current_included = false
-                for _, entry in ipairs(selected.order) do
-                    local path = entry.path
-                    if allow(path) and not seen[path] then
-                        table.insert(paths, path)
-                        seen[path] = true
-                    end
-                    if current_path and path == current_path then
-                        current_included = true
-                    end
-                end
-                if include_current_if_missing and current_path and not current_included and allow(current_path) and not seen[current_path] then
-                    table.insert(paths, current_path)
-                    seen[current_path] = true
-                end
-            elseif current_path and allow(current_path) then
-                table.insert(paths, current_path)
-                seen[current_path] = true
+            for _, entry in ipairs(selected.order) do
+                table.insert(paths, entry.path)
             end
 
-            return paths
+            return require("utils.picker").union(paths, current and current.path or nil, {
+                include_current = opts.include_current_if_missing == true,
+                allow = opts.allow or function(path)
+                    return type(path) == "string"
+                end,
+            })
         end
 
         local function buf_for_path(path)
@@ -227,8 +224,8 @@ return {
 
             local failed = {}
             for _, path in ipairs(paths) do
-                local out = vim.fn.system(spec.make_cmd(path))
-                if vim.v.shell_error ~= 0 then
+                local ok, out = git_exec(state, spec.make_cmd(path))
+                if not ok then
                     table.insert(failed, { path = path, out = out })
                 end
             end
@@ -292,8 +289,8 @@ return {
             git_confirm(message, function()
                 local failed = {}
                 for _, path in ipairs(paths) do
-                    local out = vim.fn.system({ "git", "restore", "--", path })
-                    if vim.v.shell_error == 0 then
+                    local ok, out = git_exec(state, { "git", "restore", "--", path })
+                    if ok then
                         local bufnr = buf_for_path(path)
                         if bufnr ~= -1 then
                             pcall(vim.cmd, "silent checktime " .. bufnr)
@@ -614,16 +611,16 @@ return {
 
                         ["A"] = "git_add_all",
                         ["U"] = function(state)
-                            local out = vim.fn.system({ "git", "reset" })
-                            if vim.v.shell_error ~= 0 then
+                            local ok, out = git_exec(state, { "git", "reset" })
+                            if not ok then
                                 vim.notify("Git reset failed: " .. out, vim.log.levels.ERROR, {title = "Neo-tree 󰹩"})
                             end
                             require("neo-tree.sources.git_status").refresh(state)
                         end,
                         ["R"] = function(state)
                             git_confirm("Revert ALL files?", function()
-                                local out = vim.fn.system({ "git", "restore", "--", ":/" })
-                                if vim.v.shell_error == 0 then
+                                local ok, out = git_exec(state, { "git", "restore", "--", ":/" })
+                                if ok then
                                     for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
                                         local name = vim.api.nvim_buf_get_name(bufnr)
                                         if vim.api.nvim_buf_is_loaded(bufnr) and vim.fn.filereadable(name) == 1 then
@@ -651,7 +648,7 @@ return {
 
                         layout.defer_reflow(60)
 
-                        if type(args) == "table" and args.source then
+                        if type(args) == "table" and args.source and args.position ~= "float" then
                             last_neotree_source = args.source
                         end
 
@@ -748,6 +745,5 @@ return {
         })
 
         vim.keymap.set('n', '<leader>n', toggle_last_neotree, { noremap = true, silent = true, desc = "Neotree: Toggle" })
-        vim.keymap.set('n', '<leader>w', '<C-w>w', { noremap = true, silent = true, desc = "Switch Window" })
     end
 }
