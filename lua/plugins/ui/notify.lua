@@ -227,8 +227,6 @@ return {
             }
         end)()
 
-        _G.NQF = NQF
-
         vim.keymap.set("n", "<Esc>", function()
             if vim.v.hlsearch == 1 then vim.cmd("nohlsearch") end
             notify.dismiss({ silent = true, pending = true })
@@ -237,12 +235,6 @@ return {
         vim.keymap.set("n", "<leader>xn", function()
             local special_windows = require("utils.special_windows")
             local notify = require("notify")
-
-            local NQF = _G.NQF or nil
-            if not NQF then
-                vim.notify("NQF not found", vim.log.levels.ERROR, { title = "Notify 󰂟" })
-                return
-            end
 
             local qf_open = false
             for _, win in ipairs(vim.api.nvim_list_wins()) do
@@ -353,9 +345,6 @@ return {
                 vim.b[qf_buf].bufferline_exclude = true
                 vim.b[qf_buf].notifications_qf = true
             end
-            vim.schedule(function()
-                vim.cmd("call SetQFSyntax()")
-            end)
         end, { desc = "Toggle Notifications History in quickfix (for bqf)" })
 
         local function open_float(title, lines, opts)
@@ -375,7 +364,7 @@ return {
             vim.api.nvim_set_option_value("readonly", true, { buf = buf })
             vim.api.nvim_set_option_value("filetype", "notifydetails", { buf = buf })
 
-            local block_keys = { "d", "dd", "x", "p", "i", "a", "o", "O", "c", "r", "s" }
+            local block_keys = { "d", "x", "p", "i", "a", "o", "O", "c", "r", "s" }
             for _, key in ipairs(block_keys) do
                 vim.keymap.set("n", key, "<nop>", { buffer = buf, nowait = true })
             end
@@ -512,6 +501,7 @@ return {
                 end, opts)
 
                 vim.keymap.set("n", "?", function()
+                    local qf_win = vim.api.nvim_get_current_win()
                     local lines = {
                         " Notifications Quickfix Help ",
                         "───────────────────────────────",
@@ -529,7 +519,8 @@ return {
 
                     open_float(" Notifications Help 󰂟 ", lines, {
                         width = math.floor(vim.o.columns * 0.5),
-                        refocus_win_type = "quickfix",
+                        refocus_win = qf_win,
+                        refocus_buf = args.buf,
                     })
                 end, { buffer = args.buf, desc = "Show Notifications QF help" })
             end,
