@@ -7,8 +7,7 @@ AUTOSTASH=0
 LOCKFILE=lazy-lock.json
 
 declare -a SHARED_PATHS=(
-    "lua/utils/special_windows.lua"
-    "lua/utils/layout.lua"
+    "lua/utils/*"
 )
 declare -a BRANCHES=()
 
@@ -88,7 +87,8 @@ deleted_by_them() {
 shared_path() {
     local f=$1 p
     for p in "${SHARED_PATHS[@]}"; do
-        [[ "$f" == "$p" ]] && return 0
+        # shellcheck disable=SC2053  # unquoted on purpose: $p is a glob
+        [[ "$f" == $p ]] && return 0
     done
     return 1
 }
@@ -180,6 +180,49 @@ tier_deletion_patch() {
     return $rc
 }
 
+tier_deletion_satisfied() {
+    local path=$1 tmp rc=1
+    tmp=$(mktemp -d)
+    if ! git show ":1:$path" > "$tmp/base"   2>/dev/null ||
+       ! git show ":2:$path" > "$tmp/ours"   2>/dev/null ||
+       ! git show ":3:$path" > "$tmp/theirs" 2>/dev/null; then
+        rm -rf "$tmp"; return 1
+    fi
+
+    diff -u "$tmp/base" "$tmp/theirs" > "$tmp/tier.patch" || true
+    if grep -q '^+[^+]' "$tmp/tier.patch"; then
+        rm -rf "$tmp"; return 1
+    fi
+
+    rc=0
+    while IFS= read -r line; do
+        line=${line:1}
+        [[ -z "${line//[[:space:]]/}" ]] && continue
+        if grep -qxF -- "$line" "$tmp/ours"; then rc=1; break; fi
+    done < <(grep '^-[^-]' "$tmp/tier.patch")
+
+    rm -rf "$tmp"
+    return $rc
+}
+
+# Why a file could not be resolved, so the report says what to look at.
+stuck_reason() {
+    local path=$1 tmp reason
+    tmp=$(mktemp -d)
+    if ! git show ":1:$path" > "$tmp/base" 2>/dev/null; then
+        rm -rf "$tmp"; printf 'added on both sides'; return
+    fi
+    git show ":3:$path" > "$tmp/theirs" 2>/dev/null || true
+    diff -u "$tmp/base" "$tmp/theirs" > "$tmp/p" 2>/dev/null || true
+    if grep -q '^+[^+]' "$tmp/p"; then
+        reason="the tier rewrites lines here"
+    else
+        reason="the tier's deletion no longer applies"
+    fi
+    rm -rf "$tmp"
+    printf '%s' "$reason"
+}
+
 if [[ $DRY_RUN -eq 1 ]]; then
     info "Dry run: rebasing onto '$BASE' ($(git rev-parse --short "$BASE"))"
     for b in "${BRANCHES[@]}"; do
@@ -234,7 +277,7 @@ done
 info "Saved pre-rebase positions to $BACKUP"
 
 rebase_one() {
-    local branch=$1 auto=0 locks=0 trimmed=0 kept=0 guard=0
+    local branch=$1 auto=0 locks=0 trimmed=0 kept=0 moot=0 guard=0
 
     git checkout --quiet "$branch"
 
@@ -250,7 +293,7 @@ rebase_one() {
             return 1
         fi
 
-        local -a unmerged=() resolvable=() shared=() lockfiles=() trims=() stuck=()
+        local -a unmerged=() resolvable=() shared=() lockfiles=() trims=() satisfied=() stuck=()
         mapfile -t unmerged < <(git diff --name-only --diff-filter=U)
 
         if [[ ${#unmerged[@]} -eq 0 ]]; then
@@ -271,16 +314,12 @@ rebase_one() {
                 lockfiles+=("$f")
             elif tier_deletion_patch "$f" check; then
                 trims+=("$f")
+            elif tier_deletion_satisfied "$f"; then
+                satisfied+=("$f")
             else
                 stuck+=("$f")
             fi
         done
-
-        if [[ ${#stuck[@]} -gt 0 ]]; then
-            fail "$branch: conflict this script will not resolve:"
-            printf '          %s\n' "${stuck[@]}"
-            return 1
-        fi
 
         for f in "${resolvable[@]}"; do
             git rm --quiet --force -- "$f"
@@ -315,6 +354,21 @@ rebase_one() {
             warn "$branch: merged $f -- $summary"
         done
 
+        for f in "${satisfied[@]}"; do
+            git checkout --ours -- "$f"
+            git add -- "$f"
+            moot=$((moot + 1))
+            warn "$branch: kept the base's version of $f (the tier's trim is already applied)"
+        done
+
+        if [[ ${#stuck[@]} -gt 0 ]]; then
+            fail "$branch: resolved everything it could; these need you:"
+            for f in "${stuck[@]}"; do
+                printf '          %-46s %s\n' "$f" "$(stuck_reason "$f")"
+            done
+            return 1
+        fi
+
         if git diff --cached --quiet; then
             GIT_EDITOR=true git rebase --skip >/dev/null 2>&1 || true
         else
@@ -322,7 +376,7 @@ rebase_one() {
         fi
     done
 
-    ok "$branch (auto-resolved $auto modify/delete conflict(s) as deleted, replayed $trimmed tier trim(s), kept $kept shared file(s), merged $locks lockfile(s))"
+    ok "$branch (auto-resolved $auto modify/delete conflict(s) as deleted, replayed $trimmed tier trim(s), dropped $moot moot trim(s), kept $kept shared file(s), merged $locks lockfile(s))"
     return 0
 }
 
@@ -338,6 +392,7 @@ done
 if [[ ${#FAILED[@]} -gt 0 ]]; then
     echo
     die "stopped on '${FAILED[0]}' with the rebase in progress.
+  Everything else is already resolved and staged.
   Resolve the files listed above, then: git rebase --continue
   To give up on this branch:              git rebase --abort
   To undo every branch this run moved:    sh $BACKUP"
