@@ -129,95 +129,29 @@ return {
             },
         })
 
-        local function is_excluded(bufnr, winid)
-            if not (vim.api.nvim_buf_is_valid(bufnr) and vim.api.nvim_buf_is_loaded(bufnr)) then
-                return true, "invalid"
-            end
+        local layout = require("utils.layout")
 
-            local buftype = vim.bo[bufnr].buftype
-            local filetype = vim.bo[bufnr].filetype
-            local name = vim.api.nvim_buf_get_name(bufnr)
-            local wtype = nil
-            if winid and vim.api.nvim_win_is_valid(winid) then
-                wtype = vim.fn.win_gettype(winid)
-            end
-
-            local excluded_filetypes = {
-                "neo-tree", "NvimTree",
-                "undotree",
-                "spectre", "spectre_panel", "TelescopePrompt", "TelescopeResults",
-                "dap-repl",
-                "qf", "Trouble", "neotest-summary", "Outline",
-                "help", "man", "lspinfo",
-                "gitcommit", "alpha", "noice", "copilot",
-                "lazy", "mason",
-                "fugitive",
-                "notify",
-            }
-
-            if buftype ~= "" then
-                if buftype == "terminal" and vim.b[bufnr].native_term then
-                    -- allowed: native terminal
-                else
-                    return true, "special buftype"
-                end
-            end
-            if filetype and vim.tbl_contains(excluded_filetypes, filetype) then
-                return true, "excluded filetype: " .. filetype
-            end
-            if wtype and wtype ~= "" and wtype ~= "normal" then
-                return true, "special window type"
-            end
-            if vim.b[bufnr].bufferline_exclude then
-                return true, "explicitly excluded"
-            end
-
-            return false
-        end
+        local is_excluded = layout.is_panel
 
         focus_main_window = function(silent)
-            local cur_win = vim.api.nvim_get_current_win()
-            local cur_buf = vim.api.nvim_win_get_buf(cur_win)
-            local cur_excluded = is_excluded(cur_buf, cur_win)
-            if vim.fn.win_gettype(cur_win) == "" and not cur_excluded then
-                return true
-            end
-
-            local best_win = nil
-            local best_area = -1
-
-            for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
-                if vim.api.nvim_win_is_valid(win) and vim.fn.win_gettype(win) == "" then
-                    local ok_cfg, cfg = pcall(vim.api.nvim_win_get_config, win)
-                    if ok_cfg and cfg and (not cfg.relative or cfg.relative == "") then
-                        local buf = vim.api.nvim_win_get_buf(win)
-                        local excluded = is_excluded(buf, win)
-                        if not excluded then
-                            local area = vim.api.nvim_win_get_width(win) * vim.api.nvim_win_get_height(win)
-                            if area > best_area then
-                                best_area = area
-                                best_win = win
-                            end
-                        end
-                    end
-                end
-            end
-
-            if best_win then
-                vim.api.nvim_set_current_win(best_win)
-                return true
-            end
-
-            if not silent then
-                vim.notify("No main buffer window available", vim.log.levels.WARN, { title = "Bufferline " })
-            end
-            return false
+            return layout.focus_main_win({ silent = silent, title = "Bufferline " })
         end
 
         local function buffer_is_pinned(bufnr)
-            local ok, groups = pcall(require, "bufferline.groups")
-            if ok and type(groups._is_pinned) == "function" then
-                return groups._is_pinned({ id = bufnr })
+            local name = vim.api.nvim_buf_get_name(bufnr)
+            if name == "" then
+                return false
+            end
+
+            local raw = vim.g.BufferlinePinnedBuffers
+            if type(raw) ~= "string" or raw == "" then
+                return false
+            end
+
+            for _, pinned in ipairs(vim.split(raw, ",", { trimempty = true })) do
+                if pinned == name then
+                    return true
+                end
             end
             return false
         end
@@ -281,7 +215,7 @@ return {
         end, { noremap = true, silent = true, desc = "Delete current buffer (native terminal allowed)" })
 
         vim.keymap.set("n", "<leader>bD", function()
-            local deleter = require("utils.deleter")
+            local picker = require("utils.picker")
 
             local ordered = {}
             local ok_elements, elements = pcall(function()
@@ -314,7 +248,7 @@ return {
                 return
             end
 
-            deleter.multiselect(entries, {
+            picker.multiselect(entries, {
                 prompt = "Select buffers to delete:",
                 format_item = function(b)
                     local name = (b.name ~= "" and vim.fn.fnamemodify(b.name, ":t")) or "[No Name]"

@@ -1,4 +1,5 @@
--- lua/utils/layout.lua
+local filetypes = require("utils.filetypes")
+
 local M = {}
 
 local function tab_wins()
@@ -19,6 +20,40 @@ end
 local function is_floating(win)
     local ok, cfg = pcall(vim.api.nvim_win_get_config, win)
     return ok and cfg and cfg.relative and cfg.relative ~= ""
+end
+
+M.is_floating = is_floating
+
+function M.is_panel(buf, win)
+    if not buf or not vim.api.nvim_buf_is_valid(buf) or not vim.api.nvim_buf_is_loaded(buf) then
+        return true, "invalid"
+    end
+
+    if win and vim.api.nvim_win_is_valid(win) then
+        if is_floating(win) then
+            return true, "floating window"
+        end
+        local wtype = vim.fn.win_gettype(win)
+        if wtype ~= "" and wtype ~= "normal" then
+            return true, "special window type"
+        end
+    end
+
+    local buftype = vim.bo[buf].buftype
+    if buftype ~= "" and not (buftype == "terminal" and vim.b[buf].native_term) then
+        return true, "special buftype"
+    end
+
+    local filetype = vim.bo[buf].filetype
+    if filetypes.contains(filetype) then
+        return true, "excluded filetype: " .. filetype
+    end
+
+    if vim.b[buf].bufferline_exclude then
+        return true, "explicitly excluded"
+    end
+
+    return false
 end
 
 -- Return Neo-tree window id (if any) in current tab
@@ -51,30 +86,41 @@ function M.get_toggleterm_wins()
     return wins
 end
 
-local function is_terminal_win(win)
-    local buf = win_buf(win)
-    if not buf then
-        return false
-    end
-    return vim.b[buf].is_toggleterm == true
-        or (vim.b[buf].native_term == true and vim.bo[buf].buftype == "terminal")
-end
-
--- Return the best editor window in current tab (largest width).
+-- Return the main editor window in current tab (largest non-panel window).
 function M.get_main_win()
-    local best = nil
-    local best_w = -1
+    local best, best_area = nil, -1
     for _, win in ipairs(tab_wins()) do
         local buf = win_buf(win)
-        if buf and not is_floating(win) and vim.bo[buf].buftype == "" then
-            local w = vim.api.nvim_win_get_width(win)
-            if w > best_w then
-                best_w = w
+        if buf and not M.is_panel(buf, win) then
+            local area = vim.api.nvim_win_get_width(win) * vim.api.nvim_win_get_height(win)
+            if area > best_area then
+                best_area = area
                 best = win
             end
         end
     end
     return best
+end
+
+-- Move the cursor into the main editor window, unless it is already in one.
+function M.focus_main_win(opts)
+    opts = opts or {}
+
+    local cur = vim.api.nvim_get_current_win()
+    if not M.is_panel(win_buf(cur), cur) then
+        return true
+    end
+
+    local best = M.get_main_win()
+    if best and vim.api.nvim_win_is_valid(best) then
+        vim.api.nvim_set_current_win(best)
+        return true
+    end
+
+    if not opts.silent then
+        vim.notify("No main editor window available", vim.log.levels.WARN, { title = opts.title or "Layout" })
+    end
+    return false
 end
 
 -- Move a full-width window into the main editor column, so it stops spanning underneath the side panels.
@@ -105,35 +151,45 @@ function M.confine_terminals_to_main()
     end
 end
 
--- Reflow: keep Neo-tree width and distribute remaining cols to terminal windows
+-- Reflow: toggleterm lays multiple horizontal terminals side by side in a strip
+-- under the main window, so they share that strip's width. The main window is
+-- left out: a native terminal that took over the editor window is not a bottom
+-- panel and keeps its size.
 function M.reflow_layout()
-    local neotree_win = M.get_neotree_win()
-    local term_wins = M.get_toggleterm_wins()
-    local term_count = #term_wins
+    local main = M.get_main_win()
 
-    local total_cols = vim.o.columns or 80
-    local neotree_width = 0
-    if neotree_win and vim.api.nvim_win_is_valid(neotree_win) then
-        local ok, w = pcall(vim.api.nvim_win_get_width, neotree_win)
-        if ok and type(w) == "number" then neotree_width = w end
+    local panels = {}
+    for _, win in ipairs(M.get_toggleterm_wins()) do
+        if vim.api.nvim_win_is_valid(win) and win ~= main then
+            table.insert(panels, win)
+        end
     end
 
-    local separator = neotree_width > 0 and 1 or 0
-    local remaining_cols = math.max(total_cols - neotree_width - separator, 1)
+    local count = #panels
+    if count == 0 then
+        return
+    end
 
-    if term_count > 0 then
-        local main_win = M.get_main_win()
-        local avail = remaining_cols
-        if main_win and vim.api.nvim_win_is_valid(main_win) then
-            avail = vim.api.nvim_win_get_width(main_win)
-        end
-
-        local each_width = math.floor(avail / term_count)
-        for _, win in ipairs(term_wins) do
-            if vim.api.nvim_win_is_valid(win) then
-                pcall(vim.api.nvim_win_set_width, win, math.max(1, each_width))
+    local avail = vim.o.columns or 80
+    if main and vim.api.nvim_win_is_valid(main) then
+        avail = vim.api.nvim_win_get_width(main)
+    else
+        local neotree_win = M.get_neotree_win()
+        if neotree_win and vim.api.nvim_win_is_valid(neotree_win) then
+            local ok, w = pcall(vim.api.nvim_win_get_width, neotree_win)
+            if ok and type(w) == "number" then
+                avail = math.max(avail - w - 1, 1)
             end
         end
+    end
+
+    local each_width = math.floor((avail - (count - 1)) / count)
+    if each_width < 1 then
+        return
+    end
+
+    for _, win in ipairs(panels) do
+        pcall(vim.api.nvim_win_set_width, win, each_width)
     end
 end
 
