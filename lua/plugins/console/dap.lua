@@ -60,8 +60,8 @@ return {
                 },
             }
 
-            dap.configurations.cpp = dap.configurations.c
-            dap.configurations.rust = dap.configurations.c
+            dap.configurations.cpp = vim.deepcopy(dap.configurations.c)
+            dap.configurations.rust = vim.deepcopy(dap.configurations.c)
 
             local map = vim.keymap.set
             map("n", "<F5>", require("dap").continue, { desc = "DAP continue" })
