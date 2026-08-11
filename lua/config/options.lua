@@ -73,5 +73,3 @@ vim.diagnostic.config({
         },
     }
 })
-
-vim.keymap.set("n", "<leader>a", "ggVG", { desc = "Select All" })

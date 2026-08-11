@@ -47,4 +47,13 @@ vim.keymap.set('v', '*', function()
     require('config.keymaps').search_visual_selection()
 end, { noremap = true, silent = true, desc = "Search visual selection" })
 
+vim.keymap.set("n", "<leader>a", "ggVG", { desc = "Select All" })
+vim.keymap.set("n", "<leader>w", "<C-w>w", { noremap = true, silent = true, desc = "Switch Window" })
+
+vim.keymap.set("n", "<leader>J", "<Cmd>normal! J<CR>", { silent = true, desc = "Join lines" })
+vim.keymap.set("x", "<leader>J", ":<C-u>normal! gvJ<CR>", { silent = true, desc = "Join selected lines" })
+
+vim.keymap.set("n", "<leader>lt", "<cmd>Lazy<cr>", { desc = "Lazy: Open UI" })
+vim.keymap.set("n", "<leader>lu", "<cmd>Lazy update<cr>", { desc = "Lazy: Update plugins" })
+
 return M
