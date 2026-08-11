@@ -10,11 +10,19 @@ function M.union(selected, current, opts)
     end
     local include_current = opts.include_current ~= false
 
+    local function key_of(item)
+        local id = identity(item)
+        if id == nil then
+            return item
+        end
+        return id
+    end
+
     local out, seen = {}, {}
     local has_selection = selected ~= nil and #selected > 0
 
     for _, item in ipairs(selected or {}) do
-        local id = identity(item)
+        local id = key_of(item)
         if not seen[id] and allow(item) then
             seen[id] = true
             table.insert(out, item)
@@ -22,7 +30,7 @@ function M.union(selected, current, opts)
     end
 
     if current ~= nil and (include_current or not has_selection) then
-        if allow(current) and not seen[identity(current)] then
+        if allow(current) and not seen[key_of(current)] then
             table.insert(out, current)
         end
     end
