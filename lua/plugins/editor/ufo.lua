@@ -51,7 +51,7 @@ return {
             open_fold_hl_timeout = 0,
         })
 
-        vim.keymap.set("n", "zO", require("ufo").openAllFolds, { desc = "Open all folds (ufo)" })
-        vim.keymap.set("n", "zC", require("ufo").closeAllFolds, { desc = "Close all folds (ufo)" })
+        vim.keymap.set("n", "zR", require("ufo").openAllFolds, { desc = "Open all folds (ufo)" })
+        vim.keymap.set("n", "zM", require("ufo").closeAllFolds, { desc = "Close all folds (ufo)" })
     end,
 }

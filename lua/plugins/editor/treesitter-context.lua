@@ -18,7 +18,10 @@ return {
         require("treesitter-context").setup(opts)
 
         vim.keymap.set("n", "[c", function()
+            if vim.wo.diff then
+                return "[c"
+            end
             require("treesitter-context").go_to_context(vim.v.count1)
-        end, { silent = true, desc = "Treesitter: Jump to context" })
+        end, { expr = true, silent = true, desc = "Treesitter: Jump to context" })
     end,
 }

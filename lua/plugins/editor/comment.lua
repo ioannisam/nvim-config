@@ -130,7 +130,7 @@ return {
             trim_comment(ctx, vim.fn.line("."))
         end, { desc = "Trim comment from current line" })
 
-        vim.keymap.set("x", "gd", function()
+        vim.keymap.set("x", "gcd", function()
             vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
 
             local ctx = make_context(vim.api.nvim_get_current_buf())
