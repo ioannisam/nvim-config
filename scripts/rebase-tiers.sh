@@ -69,7 +69,7 @@ for state in rebase-merge rebase-apply MERGE_HEAD CHERRY_PICK_HEAD; do
 done
 
 if [[ ${#BRANCHES[@]} -eq 0 ]]; then
-    mapfile -t BRANCHES < <(git for-each-ref --format='%(refname:short)' refs/heads/ | grep -vx "$BASE" || true)
+    mapfile -t BRANCHES < <(git for-each-ref --format='%(refname:short)' refs/heads/ | grep -vxF "$BASE" || true)
 fi
 [[ ${#BRANCHES[@]} -eq 0 ]] && die "no branches to rebase"
 
