@@ -51,29 +51,9 @@ return {
         {
             "<leader>o",
             function()
-                local special_windows = require("utils.special_windows")
-                if not special_windows.is_open("aerial") then
-                    special_windows.prepare_for_open("aerial")
-                end
-                if vim.bo.buftype ~= "" then
-                    local best, best_area = nil, -1
-                    for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
-                        local ok, cfg = pcall(vim.api.nvim_win_get_config, win)
-                        if ok and cfg and (not cfg.relative or cfg.relative == "") then
-                            local buf = vim.api.nvim_win_get_buf(win)
-                            if vim.bo[buf].buftype == "" then
-                                local area = vim.api.nvim_win_get_width(win) * vim.api.nvim_win_get_height(win)
-                                if area > best_area then
-                                    best, best_area = win, area
-                                end
-                            end
-                        end
-                    end
-                    if best then
-                        vim.api.nvim_set_current_win(best)
-                    end
-                end
-                vim.cmd("AerialToggle!")
+                require("utils.special_windows").open("aerial", function()
+                    vim.cmd("AerialToggle!")
+                end)
             end,
             desc = "Toggle Outline (Aerial)",
         },

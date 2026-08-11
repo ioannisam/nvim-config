@@ -53,22 +53,6 @@ return {
             end
         end
 
-        local function ensure_editor_focus()
-            local layout = require("utils.layout")
-            local neotree_win = layout.get_neotree_win()
-            if neotree_win and vim.api.nvim_get_current_win() == neotree_win then
-                for _, w in ipairs(vim.api.nvim_list_wins()) do
-                    if w ~= neotree_win then
-                        vim.api.nvim_set_current_win(w)
-                        return
-                    end
-                end
-                -- no other window available: create one (safe fallback)
-                vim.cmd("vsplit")
-                vim.cmd("wincmd l")
-            end
-        end
-
         local function cleanup(id)
             terminals[id] = nil
             term_names[id] = nil
@@ -127,39 +111,38 @@ return {
         })
 
         vim.keymap.set("n", "<leader>tn", function()
-            ensure_editor_focus()
-            special_windows.prepare_for_open("toggleterm")
-
-            local h_terms = {}
-            for _, t in pairs(terminals) do
-                if t.direction == "horizontal" then
-                    table.insert(h_terms, t)
+            special_windows.open("toggleterm", function()
+                local h_terms = {}
+                for _, t in pairs(terminals) do
+                    if t.direction == "horizontal" then
+                        table.insert(h_terms, t)
+                    end
                 end
-            end
 
-            for _, t in ipairs(h_terms) do
-                if not t:is_open() then
-                    t:toggle()
+                for _, t in ipairs(h_terms) do
+                    if not t:is_open() then
+                        t:toggle()
+                    end
                 end
-            end
 
-            local t_new, _ = make_term("horizontal")
-            if not t_new then
-                return  -- limit reached
-            end
-
-            t_new:toggle()
-
-            vim.defer_fn(function()
-                if t_new.bufnr and vim.api.nvim_buf_is_valid(t_new.bufnr) then
-                    vim.b[t_new.bufnr].bufferline_exclude = true
+                local t_new, _ = make_term("horizontal")
+                if not t_new then
+                    return
                 end
-                layout.defer_reflow(60)
-            end, 20)
+
+                t_new:toggle()
+
+                vim.defer_fn(function()
+                    if t_new.bufnr and vim.api.nvim_buf_is_valid(t_new.bufnr) then
+                        vim.b[t_new.bufnr].bufferline_exclude = true
+                    end
+                    layout.defer_reflow(60)
+                end, 20)
+            end)
         end, { desc = "New horizontal terminal", noremap = true, silent = true })
 
         vim.keymap.set("n", "<leader>th", function()
-            ensure_editor_focus()
+            require("utils.layout").focus_main_win({ silent = true })
             local h_terms = {}
             for _, t in pairs(terminals) do
                 if t.direction == "horizontal" then
@@ -281,8 +264,8 @@ return {
                 return
             end
 
-            local deleter = require("utils.deleter")
-            deleter.multiselect(items, {
+            local picker = require("utils.picker")
+            picker.multiselect(items, {
                 prompt = "Select terminals to delete:",
                 format_item = function(x)
                     return string.format("[%d] %s (%s)", x.id, x.name, x.dir)
@@ -298,16 +281,15 @@ return {
         end, { desc = "Delete terminals via picker", noremap = true, silent = true })
 
         vim.keymap.set("n", "<leader>tt", function()
-            ensure_editor_focus()
-            special_windows.prepare_for_open("toggleterm")
+            special_windows.open("toggleterm", function()
+                vim.cmd("terminal")
 
-            vim.cmd("terminal")
+                local bufnr = vim.api.nvim_get_current_buf()
+                vim.b[bufnr].native_term = true
+                vim.keymap.set("t", "<Esc>", [[<C-\><C-n>]], { buffer = bufnr, noremap = true, silent = true })
 
-            local bufnr = vim.api.nvim_get_current_buf()
-            vim.b[bufnr].native_term = true
-            vim.keymap.set("t", "<Esc>", [[<C-\><C-n>]], { buffer = bufnr, noremap = true, silent = true })
-
-            layout.refresh_neotree_buffers()
+                layout.refresh_neotree_buffers()
+            end)
         end, { desc = "Open native terminal", noremap = true, silent = true })
 
         vim.api.nvim_create_autocmd({ "WinNew", "WinClosed" }, {

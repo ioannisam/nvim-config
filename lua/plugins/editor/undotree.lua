@@ -4,17 +4,12 @@ return {
         {
             "<leader>u",
             function()
-                local special_windows = require("utils.special_windows")
-                if special_windows.is_open("undotree") then
-                    vim.cmd("UndotreeToggle")
-                    return
-                end
-                special_windows.prepare_for_open("undotree")
-
-                local saved = vim.o.lazyredraw
-                vim.o.lazyredraw = true
-                pcall(vim.cmd, "UndotreeToggle")
-                vim.o.lazyredraw = saved
+                require("utils.special_windows").open("undotree", function()
+                    local saved = vim.o.lazyredraw
+                    vim.o.lazyredraw = true
+                    pcall(vim.cmd, "UndotreeToggle")
+                    vim.o.lazyredraw = saved
+                end)
             end,
             desc = "Toggle UndoTree",
         },
@@ -47,6 +42,9 @@ return {
         vim.api.nvim_create_autocmd({ "FileType", "BufWinEnter", "WinNew" }, {
             group = vim.api.nvim_create_augroup("undotree_layout", { clear = true }),
             callback = function()
+                if not require("utils.special_windows").is_open("undotree") then
+                    return
+                end
                 place_undotree_windows()
                 vim.schedule(place_undotree_windows)
             end,

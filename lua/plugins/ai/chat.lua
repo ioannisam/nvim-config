@@ -86,13 +86,10 @@ return {
             {
                 "<leader>cc",
                 function()
-                    local special_windows = require("utils.special_windows")
-                    if not special_windows.is_open("copilotchat") then
-                        special_windows.prepare_for_open("copilotchat")
-                    end
-
-                    vim.schedule(function()
-                        require("CopilotChat").toggle()
+                    require("utils.special_windows").open("copilotchat", function()
+                        vim.schedule(function()
+                            require("CopilotChat").toggle()
+                        end)
                     end)
                 end,
                 desc = "Toggle Copilot Chat",

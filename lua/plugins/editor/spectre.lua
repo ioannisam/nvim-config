@@ -107,51 +107,58 @@ return {
                 },
             },
         })
+        local function open_spectre(fn)
+            special_windows.open("spectre", fn)
+        end
+
+        local function leave_visual()
+            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
+        end
+
         vim.keymap.set('n', '<leader>sg', function()
-            if special_windows.is_open("spectre") then
+            open_spectre(function()
                 require("spectre").toggle()
-                return
-            end
-            special_windows.prepare_for_open("spectre")
-            require("spectre").toggle()
+            end)
         end, {
             desc = "Search Global"
         })
         vim.keymap.set('n', '<leader>swg', function()
-            special_windows.prepare_for_open("spectre")
-            require("spectre").open_visual({ select_word = true })
+            open_spectre(function()
+                require("spectre").open_visual({ select_word = true })
+            end)
         end, {
             desc = "Search current word (global)"
         })
         vim.keymap.set('v', '<leader>swg', function()
-            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
-            special_windows.prepare_for_open("spectre")
-            require("spectre").open_visual()
+            leave_visual()
+            open_spectre(function()
+                require("spectre").open_visual()
+            end)
         end, {
             desc = "Search current selection (global)"
         })
         vim.keymap.set('n', '<leader>sl', function()
-            for _, win in ipairs(vim.api.nvim_list_wins()) do
-                local buf = vim.api.nvim_win_get_buf(win)
-                if vim.bo[buf].filetype == 'spectre_panel' then
-                    vim.api.nvim_win_close(win, true)
-                    return
-                end
+            if special_windows.is_open("spectre") then
+                special_windows.close("spectre")
+                return
             end
 
-            special_windows.prepare_for_open("spectre")
-            require("spectre").open_file_search()
+            open_spectre(function()
+                require("spectre").open_file_search()
+            end)
         end, { desc = "Search Local (force blank search)" })
         vim.keymap.set('n', '<leader>swl', function()
-            special_windows.prepare_for_open("spectre")
-            require("spectre").open_file_search({ select_word = true })
+            open_spectre(function()
+                require("spectre").open_file_search({ select_word = true })
+            end)
         end, {
             desc = "Search current word (local)"
         })
         vim.keymap.set('v', '<leader>swl', function()
-            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
-            special_windows.prepare_for_open("spectre")
-            require("spectre").open_file_search()
+            leave_visual()
+            open_spectre(function()
+                require("spectre").open_file_search()
+            end)
         end, {
             desc = "Search current selection (local)"
         })

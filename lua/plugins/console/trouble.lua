@@ -1,3 +1,11 @@
+local function trouble(cmd)
+    return function()
+        require("utils.special_windows").open("trouble", function()
+            vim.cmd(cmd)
+        end)
+    end
+end
+
 return {
     "folke/trouble.nvim",
     dependencies = { "rcarriga/nvim-notify" },
@@ -12,47 +20,17 @@ return {
     keys = {
         {
             "<leader>xD",
-            function()
-                local special_windows = require("utils.special_windows")
-                if not special_windows.is_open("trouble") then
-                    special_windows.prepare_for_open("trouble")
-                    local main = require("utils.layout").get_main_win()
-                    if main and vim.api.nvim_win_is_valid(main) then
-                        vim.api.nvim_set_current_win(main)
-                    end
-                end
-                vim.cmd("Trouble diagnostics toggle focus=true")
-            end,
+            trouble("Trouble diagnostics toggle focus=true"),
             desc = "Diagnostics (Trouble)",
         },
         {
             "<leader>xd",
-            function()
-                local special_windows = require("utils.special_windows")
-                if not special_windows.is_open("trouble") then
-                    special_windows.prepare_for_open("trouble")
-                    local main = require("utils.layout").get_main_win()
-                    if main and vim.api.nvim_win_is_valid(main) then
-                        vim.api.nvim_set_current_win(main)
-                    end
-                end
-                vim.cmd("Trouble diagnostics toggle filter.buf=0 focus=true")
-            end,
+            trouble("Trouble diagnostics toggle filter.buf=0 focus=true"),
             desc = "Buffer Diagnostics (Trouble)",
         },
         {
             "<leader>xs",
-            function()
-                local special_windows = require("utils.special_windows")
-                if not special_windows.is_open("trouble") then
-                    special_windows.prepare_for_open("trouble")
-                    local main = require("utils.layout").get_main_win()
-                    if main and vim.api.nvim_win_is_valid(main) then
-                        vim.api.nvim_set_current_win(main)
-                    end
-                end
-                vim.cmd("Trouble symbols toggle focus=false")
-            end,
+            trouble("Trouble symbols toggle focus=false"),
             desc = "Symbols (Trouble)",
         },
     },

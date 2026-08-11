@@ -19,15 +19,15 @@ local function get_win_kind(win)
         return nil
     end
 
+    if is_floating(win) then
+        return nil
+    end
+
     local ft = vim.bo[buf].filetype
     local bt = vim.bo[buf].buftype
 
     if ft == "neo-tree" then
         return "neotree"
-    end
-
-    if is_floating(win) then
-        return nil
     end
 
     if vim.b[buf].is_toggleterm == true or (vim.b[buf].native_term == true and bt == "terminal") then
@@ -143,6 +143,8 @@ local function should_close(kind, target_kind)
     return false
 end
 
+M.close = close_kind
+
 function M.prepare_for_open(target_kind)
     local present = {}
     for _, win in ipairs(tab_wins()) do
@@ -157,6 +159,19 @@ function M.prepare_for_open(target_kind)
             close_kind(kind)
         end
     end
+end
+
+function M.open(kind, open_fn, opts)
+    opts = opts or {}
+
+    if not M.is_open(kind) then
+        M.prepare_for_open(kind)
+        if opts.focus_main ~= false then
+            require("utils.layout").focus_main_win({ silent = true })
+        end
+    end
+
+    open_fn()
 end
 
 return M
