@@ -712,7 +712,8 @@ return {
         vim.api.nvim_create_autocmd("QuitPre", {
             group = vim.api.nvim_create_augroup("neotree_close_if_last", { clear = true }),
             callback = function()
-                if vim.bo.buftype ~= "" then
+                local cur = vim.api.nvim_get_current_win()
+                if layout.is_panel(vim.api.nvim_win_get_buf(cur), cur) then
                     return
                 end
 
@@ -720,10 +721,10 @@ return {
                 for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
                     local ok, cfg = pcall(vim.api.nvim_win_get_config, win)
                     if ok and cfg and (not cfg.relative or cfg.relative == "") then
-                        if vim.bo[vim.api.nvim_win_get_buf(win)].buftype == "" then
-                            editor_wins = editor_wins + 1
-                        else
+                        if layout.is_panel(vim.api.nvim_win_get_buf(win), win) then
                             table.insert(panel_wins, win)
+                        else
+                            editor_wins = editor_wins + 1
                         end
                     end
                 end

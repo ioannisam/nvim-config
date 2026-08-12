@@ -83,27 +83,31 @@ return {
 
         vim.api.nvim_create_autocmd("BufEnter", {
             group = vim.api.nvim_create_augroup("alpha_no_name_fix", { clear = true }),
-            callback = function()
+            callback = function(event)
+                local buf = event.buf
+                if
+                    vim.api.nvim_buf_get_name(buf) ~= ""
+                    or vim.bo[buf].modified
+                    or vim.bo[buf].buftype ~= ""
+                    or vim.bo[buf].filetype ~= ""
+                then
+                    return
+                end
+
                 vim.schedule(function()
-                    local buf = vim.api.nvim_get_current_buf()
-                    local bufname = vim.api.nvim_buf_get_name(buf)
+                    if not vim.api.nvim_buf_is_valid(buf) or vim.api.nvim_get_current_buf() ~= buf then
+                        return
+                    end
 
-                    if
-                        bufname == ""
-                        and not vim.bo[buf].modified
-                        and vim.bo[buf].buftype == ""
-                        and vim.bo[buf].filetype == ""
-                    then
-                        local real_buffers = vim.tbl_filter(function(b)
-                            return vim.api.nvim_buf_is_valid(b)
-                                and vim.bo[b].buflisted
-                                and vim.api.nvim_buf_get_name(b) ~= ""
-                        end, vim.api.nvim_list_bufs())
+                    local real_buffers = vim.tbl_filter(function(b)
+                        return vim.api.nvim_buf_is_valid(b)
+                            and vim.bo[b].buflisted
+                            and vim.api.nvim_buf_get_name(b) ~= ""
+                    end, vim.api.nvim_list_bufs())
 
-                        if #real_buffers == 0 then
-                            vim.cmd("bwipeout!")
-                            require("alpha").start(true)
-                        end
+                    if #real_buffers == 0 then
+                        vim.cmd("bwipeout!")
+                        require("alpha").start(true)
                     end
                 end)
             end,
