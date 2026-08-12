@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
+
 BASE=main
 DRY_RUN=0
 AUTOSTASH=0
 LOCKFILE=lazy-lock.json
 
-declare -a SHARED_PATHS=(
-    "lua/utils/*"
-)
 declare -a BRANCHES=()
 
 usage() {
@@ -51,30 +52,18 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-info()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
-ok()    { printf '  \033[1;32mok\033[0m    %s\n' "$*"; }
-warn()  { printf '  \033[1;33mwarn\033[0m  %s\n' "$*"; }
-fail()  { printf '  \033[1;31mfail\033[0m  %s\n' "$*"; }
-die()   { printf '\033[1;31merror:\033[0m %s\n' "$*" >&2; exit 1; }
 
-git rev-parse --git-dir >/dev/null 2>&1 || die "not inside a git repository"
-cd "$(git rev-parse --show-toplevel)"
+require_repo
 
-git show-ref --verify --quiet "refs/heads/$BASE" || die "base branch '$BASE' does not exist"
+require_base
 
 for state in rebase-merge rebase-apply MERGE_HEAD CHERRY_PICK_HEAD; do
     [[ -e "$(git rev-parse --git-path $state)" ]] &&
         die "a rebase, merge or cherry-pick is already in progress; finish or abort it first"
 done
 
-if [[ ${#BRANCHES[@]} -eq 0 ]]; then
-    mapfile -t BRANCHES < <(git for-each-ref --format='%(refname:short)' refs/heads/ | grep -vxF "$BASE" || true)
-fi
+collect_branches exclude-base
 [[ ${#BRANCHES[@]} -eq 0 ]] && die "no branches to rebase"
-
-for b in "${BRANCHES[@]}"; do
-    git show-ref --verify --quiet "refs/heads/$b" || die "branch '$b' does not exist"
-done
 
 ORIGINAL_BRANCH=$(git symbolic-ref --quiet --short HEAD || git rev-parse HEAD)
 
@@ -84,27 +73,10 @@ deleted_by_them() {
     [[ "$stages" == *2* && "$stages" != *3* ]]
 }
 
-shared_path() {
-    local f=$1 p
-    for p in "${SHARED_PATHS[@]}"; do
-        # shellcheck disable=SC2053  # unquoted on purpose: $p is a glob
-        [[ "$f" == $p ]] && return 0
-    done
-    return 1
-}
-
 lockfile_mergeable() {
     [[ "$1" == "$LOCKFILE" ]] && command -v python3 >/dev/null 2>&1
 }
 
-# lazy-lock.json is generated, so a textual merge is meaningless. Resolve it as
-# a key-level 3-way merge instead:
-#   keys   the tier's own set, plus any plugin the base has added since the
-#          merge base (a new plugin no tier deletes belongs in every tier)
-#   values the base's pin where it has one -- the base is the superset and
-#          carries the freshest commits -- otherwise the tier's
-# Kept entries reuse the base's raw line, so the result stays byte-identical to
-# what lazy.nvim itself writes and no ordering or formatting drift creeps in.
 merge_lockfile() {
     local path=$1 tmp rc
     tmp=$(mktemp -d)

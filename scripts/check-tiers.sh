@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=lib.sh
+source "$SCRIPT_DIR/lib.sh"
+
 BASE=main
 QUIET=0
 declare -a BRANCHES=()
-declare -a TIER_ORDER=(tiny minimal standard verbose)
-declare -a SHARED_PATHS=("lua/utils/*")
 declare -a REQUIRES=(
     "lua/plugins/editor/illuminate.lua|'lsp',|lua/plugins/lsp/lspconfig.lua|illuminate lsp provider"
     "lua/plugins/editor/illuminate.lua|'treesitter',|lua/plugins/editor/treesitter.lua|illuminate treesitter provider"
@@ -56,27 +58,16 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-info() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
-ok()   { [[ $QUIET -eq 1 ]] || printf '  \033[1;32mok\033[0m    %s\n' "$*"; }
-warn() { printf '  \033[1;33mwarn\033[0m  %s\n' "$*"; }
-bad()  { printf '  \033[1;31mfail\033[0m  %s\n' "$*"; }
-die()  { printf '\033[1;31merror:\033[0m %s\n' "$*" >&2; exit 1; }
 
 PROBLEMS=0
 WARNINGS=0
-fail() { bad "$*"; PROBLEMS=$((PROBLEMS + 1)); }
+problem() { fail "$*"; PROBLEMS=$((PROBLEMS + 1)); }
 soft() { warn "$*"; WARNINGS=$((WARNINGS + 1)); }
 
-git rev-parse --git-dir >/dev/null 2>&1 || die "not inside a git repository"
-cd "$(git rev-parse --show-toplevel)"
-git show-ref --verify --quiet "refs/heads/$BASE" || die "base branch '$BASE' does not exist"
+require_repo
+require_base
 
-if [[ ${#BRANCHES[@]} -eq 0 ]]; then
-    mapfile -t BRANCHES < <(git for-each-ref --format='%(refname:short)' refs/heads/)
-fi
-for b in "${BRANCHES[@]}"; do
-    git show-ref --verify --quiet "refs/heads/$b" || die "branch '$b' does not exist"
-done
+collect_branches
 
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
@@ -117,14 +108,14 @@ for b in "${BRANCHES[@]}"; do
         if [[ "$(git merge-base "$BASE" "$b")" == "$(git rev-parse "$BASE")" ]]; then
             ok "on top of $BASE ($(git rev-list --count "$BASE..$b") commit(s))"
         else
-            fail "not on top of $BASE -- rebase it"
+            problem "not on top of $BASE -- rebase it"
         fi
     fi
 
     # no conflict markers
     markers=$(grep -rlE '^(<<<<<<< |>>>>>>> |\|\|\|\|\|\|\| )' "$d" 2>/dev/null | sed "s|$d/||" || true)
     if [[ -n "$markers" ]]; then
-        fail "conflict markers left in: $(echo "$markers" | tr '\n' ' ')"
+        problem "conflict markers left in: $(echo "$markers" | tr '\n' ' ')"
     else
         ok "no conflict markers"
     fi
@@ -135,7 +126,7 @@ for b in "${BRANCHES[@]}"; do
     if [[ "$parse_out" == "SKIP" ]]; then
         soft "nvim not found, skipped the parse check"
     elif [[ -n "$parse_out" ]]; then
-        fail "Lua that does not parse:"
+        problem "Lua that does not parse:"
         printf '          %s\n' "$parse_out"
     else
         ok "$count Lua file(s) parse"
@@ -155,7 +146,7 @@ for b in "${BRANCHES[@]}"; do
             [[ ${#specs[@]} -eq 0 ]] && empty="$empty $imp"
         done < <(grep -oP '(?<=import = ")[^"]+' "$d/lua/config/lazy.lua" || true)
         if [[ -n "$empty" ]]; then
-            fail "lazy.lua imports nothing-directories:$empty"
+            problem "lazy.lua imports nothing-directories:$empty"
         else
             ok "all lazy.lua imports resolve"
         fi
@@ -169,7 +160,7 @@ for b in "${BRANCHES[@]}"; do
         [[ -f "$f" ]] || missing="$missing $m"
     done < <(grep -rhoP 'require\("\Kutils\.[a-z_]+(?=")' "$d/lua" 2>/dev/null | sort -u || true)
     if [[ -n "$missing" ]]; then
-        fail "require() targets that do not exist:$missing"
+        problem "require() targets that do not exist:$missing"
     else
         ok "all utils requires resolve"
     fi
@@ -184,7 +175,7 @@ for b in "${BRANCHES[@]}"; do
             done < <(git ls-tree -r --name-only "$b" | grep -E "^${pat//\*/[^/]*}$" || true)
         done
         if [[ -n "$drifted" ]]; then
-            fail "shared file(s) drifted from $BASE:$drifted"
+            problem "shared file(s) drifted from $BASE:$drifted"
         else
             ok "shared files match $BASE"
         fi
@@ -199,7 +190,7 @@ for b in "${BRANCHES[@]}"; do
         [[ -f "$d/$needs" ]] || dangling="$dangling|$label"
     done
     if [[ -n "$dangling" ]]; then
-        fail "config referencing absent plugins:$(echo "$dangling" | tr '|' ' ')"
+        problem "config referencing absent plugins:$(echo "$dangling" | tr '|' ' ')"
     else
         ok "no config referencing absent plugins"
     fi
@@ -242,7 +233,7 @@ else
             <(git ls-tree -r --name-only "$small" -- lua/plugins | sort) \
             <(git ls-tree -r --name-only "$large" -- lua/plugins | sort))
         if [[ -n "$extra" ]]; then
-            fail "$small has specs $large lacks: $(echo "$extra" | tr '\n' ' ')"
+            problem "$small has specs $large lacks: $(echo "$extra" | tr '\n' ' ')"
         else
             ok "$small ⊆ $large"
         fi
