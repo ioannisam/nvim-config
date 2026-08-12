@@ -200,7 +200,7 @@ This document lists the keymaps of this configuration across different plugins a
 | `U` | Undo all deletes (Notifications quickfix). |
 | `q` | Close Notifications quickfix. |
 | `?` | Show Notifications quickfix help. |
-| `d,dd,x,p,i,a,o,O,c,r,s` | Disabled in notification detail float (`<nop>`). |
+| `d,x,p,i,a,o,O,c,r,s` | Disabled in notification detail float (`<nop>`). |
 
 ## Copilot Chat
 

@@ -12,6 +12,7 @@ These are defined directly in this config via `vim.api.nvim_create_user_command`
 | `:AlphaRestoreSession` | `goolord/alpha-nvim` + `folke/persistence.nvim` | custom | Restore session for current cwd (or open session picker fallback). |
 | `:PersistenceClear` | `folke/persistence.nvim` + local config | custom | Interactively delete saved sessions. |
 | `:CopilotAuth` | `zbirenbaum/copilot.lua` + local config | custom | Start GitHub Copilot auth flow. |
+| `:CodeSnapSaveAuto` | `mistricky/codesnap.nvim` + local config | custom | Save a snapshot of the selection to `~/Pictures/codesnap` under a timestamped name. |
 
 ## Plugin Commands Used In This Setup
 
