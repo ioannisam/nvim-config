@@ -21,7 +21,11 @@ return {
             if vim.wo.diff then
                 return "[c"
             end
-            require("treesitter-context").go_to_context(vim.v.count1)
+            local count = vim.v.count1
+            vim.schedule(function()
+                require("treesitter-context").go_to_context(count)
+            end)
+            return "<Ignore>"
         end, { expr = true, silent = true, desc = "Treesitter: Jump to context" })
     end,
 }

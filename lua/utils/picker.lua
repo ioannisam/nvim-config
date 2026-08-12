@@ -8,7 +8,6 @@ function M.union(selected, current, opts)
     local allow = opts.allow or function()
         return true
     end
-    local include_current = opts.include_current ~= false
 
     local function key_of(item)
         local id = identity(item)
@@ -29,10 +28,8 @@ function M.union(selected, current, opts)
         end
     end
 
-    if current ~= nil and (include_current or not has_selection) then
-        if allow(current) and not seen[key_of(current)] then
-            table.insert(out, current)
-        end
+    if current ~= nil and not has_selection and allow(current) then
+        table.insert(out, current)
     end
 
     return out

@@ -28,7 +28,8 @@ local dvd = {
     init = function(grid)
         define_highlights()
 
-        local width, height = #grid[1], #grid
+        local height = #grid
+        local width = height > 0 and #grid[1] or 0
         local rows = logo_cells()
         local logo_h = #rows
         local logo_w = #rows[1]

@@ -83,7 +83,6 @@ return {
             end
 
             return require("utils.picker").union(paths, current and current.path or nil, {
-                include_current = opts.include_current_if_missing == true,
                 allow = opts.allow or function(path)
                     return type(path) == "string"
                 end,
@@ -177,7 +176,6 @@ return {
 
         local function delete_selected_buffers_or_current(state)
             local paths = get_selected_paths_or_current(state, {
-                include_current_if_missing = false,
                 allow = function(path)
                     return type(path) == "string" and buf_for_path(path) ~= -1
                 end,
@@ -211,7 +209,6 @@ return {
 
         local function run_git_on_selected_or_current(state, spec)
             local paths = get_selected_paths_or_current(state, {
-                include_current_if_missing = true,
                 allow = function(path)
                     return type(path) == "string" and #path > 0
                 end,
@@ -272,7 +269,6 @@ return {
 
         local function git_revert_selected_or_current(state)
             local paths = get_selected_paths_or_current(state, {
-                include_current_if_missing = true,
                 allow = function(path)
                     return type(path) == "string" and #path > 0
                 end,
@@ -400,7 +396,6 @@ return {
 
         local function open_multiselect_or_current(state)
             local targets = get_selected_paths_or_current(state, {
-                include_current_if_missing = true,
                 allow = function(path)
                     return type(path) == "string" and vim.fn.filereadable(path) == 1
                 end,
