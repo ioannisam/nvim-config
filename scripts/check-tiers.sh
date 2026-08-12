@@ -36,9 +36,10 @@ Exits non-zero if anything fails, so it can follow a rebase directly:
 
     ./scripts/rebase-tiers.sh && ./scripts/check-tiers.sh
 
-The documentation check is advisory and partial: it only sees rows whose Plugin
-column names the plugin, so a keymap listed under a category such as "General"
-is not matched. Treat a clean docs line as "nothing obvious", not as proof.
+doc/commands.md names each plugin as `owner/repo`, so that check is exact and
+a hit fails the run. doc/keymaps.md only names the plugin in some of its
+tables, so a hit is reported as a warning but a clean result there means
+"nothing obvious", not "nothing wrong".
 
 Options:
   -b, --base <branch>   Branch the tiers sit on (default: main)
@@ -196,24 +197,38 @@ for b in "${BRANCHES[@]}"; do
         ok "no config referencing absent plugins"
     fi
 
-    # docs mentioning plugins this tier removed (advisory)
-    if [[ "$b" != "$BASE" && -f "$d/doc/keymaps.md" ]]; then
-        stale=""
+    # docs describing plugins this tier removed
+    #
+    # commands.md names the plugin as `owner/repo` in its Source column, so a
+    # hit there is exact and counts as a failure. keymaps.md only names the
+    # plugin in some of its tables, so a hit is reported but a miss proves
+    # nothing and it stays advisory.
+    if [[ "$b" != "$BASE" ]]; then
+        stale_cmd="" stale_keys=""
         while read -r spec; do
             [[ -z "$spec" ]] && continue
             [[ -f "$d/$spec" ]] && continue
             repo=$(git show "$BASE:$spec" | grep -oP '^\s*"\K[^"]+/[^"]+' | head -1 || true)
             [[ -z "$repo" ]] && continue
 
-            if grep -qE "\|[[:space:]]*(${repo//\//\\/}|${repo##*/})[[:space:]]*\|" \
-                   "$d/doc/keymaps.md" 2>/dev/null; then
-                stale="$stale ${repo##*/}"
+            if [[ -f "$d/doc/commands.md" ]] && grep -qF -- "$repo" "$d/doc/commands.md"; then
+                stale_cmd="$stale_cmd ${repo##*/}"
+            fi
+            if [[ -f "$d/doc/keymaps.md" ]] && grep -qE "\|[[:space:]]*($repo|${repo##*/})[[:space:]]*\|" \
+                   "$d/doc/keymaps.md"; then
+                stale_keys="$stale_keys ${repo##*/}"
             fi
         done < <(git ls-tree -r --name-only "$BASE" -- lua/plugins)
-        if [[ -n "$stale" ]]; then
-            soft "doc/keymaps.md still mentions removed plugin(s):$stale"
+
+        if [[ -n "$stale_cmd" ]]; then
+            problem "doc/commands.md documents removed plugin(s):$stale_cmd"
         else
-            ok "docs mention no removed plugins"
+            ok "commands.md documents nothing removed"
+        fi
+        if [[ -n "$stale_keys" ]]; then
+            soft "doc/keymaps.md still mentions removed plugin(s):$stale_keys"
+        else
+            ok "keymaps.md mentions nothing removed"
         fi
     fi
 done
