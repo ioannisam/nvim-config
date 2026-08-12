@@ -10,8 +10,6 @@ This document lists the keymaps of this configuration across different plugins a
 | n | `<leader>w` | General | Switch window. |
 | n | `<leader>n` | Neotree | Toggle Neo-tree. |
 | n | `<leader>u` | General | Toggle UndoTree. |
-| n | `<leader>J` | General | Join lines (`J` belongs to vim-move). |
-| x | `<leader>J` | General | Join selected lines. |
 | n | `<leader>o` | General | Toggle symbol outline (Aerial). |
 | n | `<leader>p` | General | Toggle Precognition motion hints. |
 | n | `<leader>k` | General | Toggle Screenkey overlay. |
@@ -368,6 +366,8 @@ Movement uses ordinary cursor motions, so `hjkl` and the arrow keys both work.
 | n | `K` | vim-move | Move line up. |
 | v | `J` | vim-move | Move selection down. |
 | v | `K` | vim-move | Move selection up. |
+| n | `<M-J>` | vim-move | Join lines (`J` is taken by vim-move). |
+| x | `<M-J>` | vim-move | Join the selected lines. |
 | n | `<leader>1..<leader>9` | bufferline.nvim | Jump to buffer by index. |
 | n | `<A-1>..<A-9>` | bufferline.nvim | Jump to buffer by index (alternative). |
 | n | `<2-LeftMouse>` | bufferline.nvim | Create new buffer when double-clicking the bufferline row (falls through to select-word elsewhere). |

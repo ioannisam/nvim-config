@@ -84,18 +84,19 @@ return {
         vim.api.nvim_create_autocmd("BufEnter", {
             group = vim.api.nvim_create_augroup("alpha_no_name_fix", { clear = true }),
             callback = function(event)
-                local buf = event.buf
-                if
-                    vim.api.nvim_buf_get_name(buf) ~= ""
-                    or vim.bo[buf].modified
-                    or vim.bo[buf].buftype ~= ""
-                    or vim.bo[buf].filetype ~= ""
-                then
+                if vim.api.nvim_buf_get_name(event.buf) ~= "" then
                     return
                 end
 
                 vim.schedule(function()
-                    if not vim.api.nvim_buf_is_valid(buf) or vim.api.nvim_get_current_buf() ~= buf then
+                    local buf = vim.api.nvim_get_current_buf()
+                    if
+                        not vim.api.nvim_buf_is_valid(buf)
+                        or vim.api.nvim_buf_get_name(buf) ~= ""
+                        or vim.bo[buf].modified
+                        or vim.bo[buf].buftype ~= ""
+                        or vim.bo[buf].filetype ~= ""
+                    then
                         return
                     end
 

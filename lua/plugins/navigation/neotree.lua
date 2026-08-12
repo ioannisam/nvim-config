@@ -130,7 +130,7 @@ return {
             return false
         end
 
-        local function show_alpha_if_no_real_buffers()
+        local function focus_editor_if_no_real_buffers()
             vim.schedule(function()
                 if has_real_file_buffers() then return end
 
@@ -151,11 +151,6 @@ return {
                     and vim.bo[cur].filetype == ""
                 then
                     pcall(vim.cmd, "bwipeout!")
-                end
-
-                local ok_alpha, alpha = pcall(require, "alpha")
-                if ok_alpha and type(alpha.start) == "function" then
-                    alpha.start(true)
                 end
             end)
         end
@@ -187,7 +182,7 @@ return {
                 delete_buffer_entry(state, paths[1])
                 refresh_source(state, "buffers")
                 clear_multiselect(state)
-                show_alpha_if_no_real_buffers()
+                focus_editor_if_no_real_buffers()
                 return
             end
 
@@ -197,7 +192,7 @@ return {
 
             refresh_source(state, "buffers")
             clear_multiselect(state)
-            show_alpha_if_no_real_buffers()
+            focus_editor_if_no_real_buffers()
         end
 
         refresh_source = function(state, source)
