@@ -18,17 +18,24 @@ function M.search_visual_selection()
     local lines = vim.api.nvim_buf_get_lines(0, start_row - 1, end_row, false)
     if vim.tbl_isempty(lines) then return end
 
+    local function char_end(line, col)
+        if type(line) ~= 'string' or col < 1 or col > #line then
+            return col
+        end
+        return col + vim.str_utf_end(line, col)
+    end
+
     if mode == BLOCKWISE then
         if start_col > end_col then
             start_col, end_col = end_col, start_col
         end
-        lines = { string.sub(lines[1], start_col, end_col) }
+        lines = { string.sub(lines[1], start_col, char_end(lines[1], end_col)) }
     elseif mode ~= 'V' then
         if #lines == 1 then
-            lines[1] = string.sub(lines[1], start_col, end_col)
+            lines[1] = string.sub(lines[1], start_col, char_end(lines[1], end_col))
         else
             lines[1] = string.sub(lines[1], start_col)
-            lines[#lines] = string.sub(lines[#lines], 1, end_col)
+            lines[#lines] = string.sub(lines[#lines], 1, char_end(lines[#lines], end_col))
         end
     end
 
@@ -39,8 +46,9 @@ function M.search_visual_selection()
     if search_text == '' then return end
 
     vim.fn.setreg('/', search_text)
+    vim.fn.histadd('search', search_text)
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', true)
-    vim.cmd('normal! n')
+    pcall(vim.cmd, 'normal! n')
 end
 
 vim.keymap.set('v', '*', function()
