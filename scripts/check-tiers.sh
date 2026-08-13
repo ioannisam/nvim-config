@@ -18,6 +18,13 @@ declare -a REQUIRES=(
     "lua/plugins/ui/lualine.lua|\"diagnostics\"|lua/plugins/lsp/lspconfig.lua|lualine diagnostics component"
     "lua/plugins/ui/lualine.lua|\"diff\"|lua/plugins/git/gitsigns.lua|lualine diff component"
     "lua/plugins/navigation/bufferline.lua|diagnostics = \"nvim_lsp\"|lua/plugins/lsp/lspconfig.lua|bufferline lsp diagnostics"
+
+    "lua/utils/picker.lua|require(\"telescope|lua/plugins/navigation/telescope.lua|utils.picker needs telescope"
+    "lua/plugins/editor/yanky.lua|require(\"telescope\")|lua/plugins/navigation/telescope.lua|yanky yank-history extension needs telescope"
+    "lua/plugins/navigation/harpoon.lua|require(\"telescope|lua/plugins/navigation/telescope.lua|harpoon picker needs telescope"
+    "lua/plugins/navigation/project.lua|require(\"telescope\")|lua/plugins/navigation/telescope.lua|project picker needs telescope"
+    "lua/plugins/ui/alpha.lua|require(\"persistence\")|lua/plugins/navigation/persistence.lua|alpha session button needs persistence"
+    "lua/plugins/ui/bqf.lua|require(\"catppuccin.palettes\")|lua/plugins/ui/catppuccin.lua|bqf highlights need catppuccin"
 )
 
 usage() {
