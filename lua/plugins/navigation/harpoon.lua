@@ -35,10 +35,22 @@ return {
         local conf = require("telescope.config").values
         local actions = require("telescope.actions")
 
+        local function marks(list)
+            local out = {}
+            for i = 1, list:length() do
+                local item = list.items[i]
+                if item then
+                    table.insert(out, { idx = i, value = item.value })
+                end
+            end
+            return out
+        end
+
         vim.keymap.set("n", "<leader>hm", function()
             local list = harpoon:list()
+            local entries = marks(list)
 
-            if #list.items == 0 then
+            if #entries == 0 then
                 vim.notify("No harpooned files", vim.log.levels.INFO, { title = "Harpoon 󰛢" })
                 return
             end
@@ -46,7 +58,7 @@ return {
             pickers.new({}, {
                 prompt_title = "󰛢 Harpooned Files",
                 finder = finders.new_table({
-                    results = list.items,
+                    results = entries,
                     entry_maker = function(entry)
                         local name = vim.fn.fnamemodify(entry.value, ":t")
                         local icon = require("nvim-web-devicons").get_icon(name, nil, { default = true })
@@ -87,34 +99,32 @@ return {
 
         vim.keymap.set("n", "<leader>hd", function()
             local list = harpoon:list()
-            local marks = list.items
+            local entries = marks(list)
 
-            if #marks == 0 then
+            if #entries == 0 then
                 vim.notify("No harpoons to delete", vim.log.levels.INFO, { title = "Harpoon 󰛢" })
                 return
             end
 
             local items = {}
-            for i, item in ipairs(marks) do
+            for n, entry in ipairs(entries) do
                 table.insert(items, {
-                    idx = i,
-                    path = item.value,
-                    name = vim.fn.fnamemodify(item.value, ":t"),
+                    n = n,
+                    idx = entry.idx,
+                    path = entry.value,
+                    name = vim.fn.fnamemodify(entry.value, ":t"),
                 })
             end
 
             require("utils.picker").multiselect(items, {
                 prompt = "Select harpoons to delete:",
                 format_item = function(x)
-                    return string.format("[%d] %s", x.idx, x.path)
+                    return string.format("[%d] %s", x.n, x.path)
                 end,
             }, function(selected)
-                table.sort(selected, function(a, b)
-                    return a.idx > b.idx
-                end)
                 for _, choice in ipairs(selected) do
                     list:remove_at(choice.idx)
-                    vim.notify("Deleted harpoon " .. choice.idx, vim.log.levels.INFO, { title = "Harpoon 󰛢" })
+                    vim.notify("Deleted harpoon " .. choice.n, vim.log.levels.INFO, { title = "Harpoon 󰛢" })
                 end
             end)
         end, { desc = "Delete Harpoon marks", noremap = true, silent = true })

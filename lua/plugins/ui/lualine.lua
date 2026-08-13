@@ -12,7 +12,12 @@ return {
             if not ok then return "" end
 
             local list = harpoon:list()
-            local count = list and #list.items or 0
+            if not list then return "" end
+
+            local count = 0
+            for i = 1, list:length() do
+                if list.items[i] then count = count + 1 end
+            end
 
             return count > 0 and ("󰛢 " .. count) or "" -- 󰀱
         end
