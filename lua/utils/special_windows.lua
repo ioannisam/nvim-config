@@ -30,7 +30,7 @@ local function get_win_kind(win)
         return "neotree"
     end
 
-    if vim.b[buf].is_toggleterm == true or (vim.b[buf].native_term == true and bt == "terminal") then
+    if vim.b[buf].is_toggleterm == true then
         return "toggleterm"
     end
 
