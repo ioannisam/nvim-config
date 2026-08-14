@@ -178,14 +178,6 @@ return {
 
             if #paths == 0 then return end
 
-            if #paths == 1 then
-                delete_buffer_entry(state, paths[1])
-                refresh_source(state, "buffers")
-                clear_multiselect(state)
-                focus_editor_if_no_real_buffers()
-                return
-            end
-
             for _, path in ipairs(paths) do
                 delete_buffer_entry(state, path)
             end
