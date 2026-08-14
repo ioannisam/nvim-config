@@ -13,9 +13,21 @@ local ensure_installed = {
     "markdown_inline",
 }
 
-local selection_stack = {}
+local selection = { buf = nil, stack = {} }
+
+local function selection_stack()
+    if selection.buf ~= vim.api.nvim_get_current_buf() then
+        selection.buf, selection.stack = nil, {}
+    end
+    return selection.stack
+end
 
 local function set_visual(srow, scol, erow, ecol)
+    local last = vim.api.nvim_buf_line_count(0)
+    if srow >= last or erow >= last then
+        return
+    end
+
     if vim.fn.mode():match("[vV\22]") then
         vim.cmd([[execute "normal! \<Esc>"]])
     end
@@ -35,12 +47,14 @@ local function init_selection()
     if not node then
         return
     end
-    selection_stack = { node }
+    selection.buf = vim.api.nvim_get_current_buf()
+    selection.stack = { node }
     set_visual(node:range())
 end
 
 local function node_incremental()
-    local node = selection_stack[#selection_stack]
+    local stack = selection_stack()
+    local node = stack[#stack]
     if not node then
         init_selection()
         return
@@ -52,17 +66,18 @@ local function node_incremental()
     end
 
     if parent then
-        table.insert(selection_stack, parent)
+        table.insert(stack, parent)
         node = parent
     end
     set_visual(node:range())
 end
 
 local function node_decremental()
-    if #selection_stack > 1 then
-        table.remove(selection_stack)
+    local stack = selection_stack()
+    if #stack > 1 then
+        table.remove(stack)
     end
-    local node = selection_stack[#selection_stack]
+    local node = stack[#stack]
     if node then
         set_visual(node:range())
     end
