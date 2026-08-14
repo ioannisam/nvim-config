@@ -457,13 +457,29 @@ return {
             return buf, win
         end
 
+        local NOTIF_DESC = "Notifications: "
+
+        local function clear_notification_maps(buf)
+            if not vim.b[buf].notifications_qf then return end
+
+            vim.b[buf].notifications_qf = nil
+            for _, map in ipairs(vim.api.nvim_buf_get_keymap(buf, "n")) do
+                if type(map.desc) == "string" and vim.startswith(map.desc, NOTIF_DESC) then
+                    pcall(vim.keymap.del, "n", map.lhs, { buffer = buf })
+                end
+            end
+        end
+
         vim.api.nvim_create_autocmd("FileType", {
             group = vim.api.nvim_create_augroup("notify_qf_keymaps", { clear = true }),
             pattern = "qf",
             callback = function(args)
                 local title = vim.fn.getqflist({ title = 1 }).title
-                if title ~= "Notifications" then return end
-                local opts = { buffer = args.buf, nowait = true, desc = "Notifications QF" }
+                if title ~= "Notifications" then
+                    clear_notification_maps(args.buf)
+                    return
+                end
+                local opts = { buffer = args.buf, nowait = true, desc = NOTIF_DESC .. "quickfix" }
 
                 vim.keymap.set("n", "<CR>", function()
                     local qf_win = vim.api.nvim_get_current_win()
@@ -482,23 +498,23 @@ return {
                         lines,
                         { refocus_win = qf_win, refocus_buf = args.buf }
                     )
-                end, vim.tbl_extend("force", opts, { desc = "Open notification detail in floating view" }))
+                end, vim.tbl_extend("force", opts, { desc = NOTIF_DESC .. "open detail in floating view" }))
 
                 for _, key in ipairs({ "d", "<Delete>" }) do
                     vim.keymap.set("n", key, NQF.delete,
-                        vim.tbl_extend("force", opts, { desc = "Delete notification under cursor" }))
+                        vim.tbl_extend("force", opts, { desc = NOTIF_DESC .. "delete under cursor" }))
                 end
                 vim.keymap.set("n", "D", NQF.delete_all,
-                    vim.tbl_extend("force", opts, { desc = "Delete all notifications (keep qf open for undo)" }))
+                    vim.tbl_extend("force", opts, { desc = NOTIF_DESC .. "delete all (keep qf open for undo)" }))
 
                 vim.keymap.set("n", "u", NQF.undo_delete,
-                    vim.tbl_extend("force", opts, { desc = "Undo last delete" }))
+                    vim.tbl_extend("force", opts, { desc = NOTIF_DESC .. "undo last delete" }))
                 vim.keymap.set("n", "U", NQF.undo_all,
-                    vim.tbl_extend("force", opts, { desc = "Undo all deletes" }))
+                    vim.tbl_extend("force", opts, { desc = NOTIF_DESC .. "undo all deletes" }))
 
                 vim.keymap.set("n", "q", function()
                     vim.cmd("cclose")
-                end, opts)
+                end, vim.tbl_extend("force", opts, { desc = NOTIF_DESC .. "close" }))
 
                 vim.keymap.set("n", "?", function()
                     local qf_win = vim.api.nvim_get_current_win()
@@ -522,7 +538,7 @@ return {
                         refocus_win = qf_win,
                         refocus_buf = args.buf,
                     })
-                end, { buffer = args.buf, desc = "Show Notifications QF help" })
+                end, vim.tbl_extend("force", opts, { desc = NOTIF_DESC .. "show help" }))
             end,
         })
     end,
