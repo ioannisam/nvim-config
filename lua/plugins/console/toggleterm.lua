@@ -70,9 +70,9 @@ return {
                     vim.b[term.bufnr].is_toggleterm = true
                     vim.b[term.bufnr].toggleterm_direction = term.direction
                     vim.b[term.bufnr].toggleterm_id = term.id
-                end
 
-                vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<Esc>", "<C-\\><C-n>", { noremap = true, silent = true })
+                    vim.api.nvim_buf_set_keymap(term.bufnr, "t", "<Esc>", "<C-\\><C-n>", { noremap = true, silent = true })
+                end
 
                 layout.confine_terminals_to_main()
 
