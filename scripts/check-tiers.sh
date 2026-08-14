@@ -264,8 +264,14 @@ else
 fi
 
 printf '\n'
+passed_note="" failed_note=""
+if [[ $WARNINGS -gt 0 ]]; then
+    passed_note=" ($WARNINGS warning(s))"
+    failed_note=", $WARNINGS warning(s)"
+fi
+
 if [[ $PROBLEMS -eq 0 ]]; then
-    info "All checks passed${WARNINGS:+ ($WARNINGS warning(s))}"
+    info "All checks passed$passed_note"
     exit 0
 fi
-die "$PROBLEMS problem(s) found${WARNINGS:+, $WARNINGS warning(s)}"
+die "$PROBLEMS problem(s) found$failed_note"
