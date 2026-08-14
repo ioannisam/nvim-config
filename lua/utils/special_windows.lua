@@ -35,6 +35,10 @@ local function get_win_kind(win)
     end
 
     if bt == "quickfix" then
+        local info = vim.fn.getwininfo(win)[1]
+        if info and info.loclist == 1 then
+            return nil
+        end
         if vim.b[buf].notifications_qf == true then
             return "notifications"
         end
