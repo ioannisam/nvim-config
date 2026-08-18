@@ -376,8 +376,8 @@ Movement uses ordinary cursor motions, so `hjkl` and the arrow keys both work.
 | n | `<F10>` | nvim-dap | DAP step over. |
 | n | `<F11>` | nvim-dap | DAP step into. |
 | n | `<F12>` | nvim-dap | DAP step out. |
-| n | `pd` | nvim-lspconfig | Diagnostics previous. |
-| n | `nd` | nvim-lspconfig | Diagnostics next. |
+| n | `[d` | nvim-lspconfig | Diagnostics previous. |
+| n | `]d` | nvim-lspconfig | Diagnostics next. |
 | n | `gd` | nvim-lspconfig | LSP go to definition (buffer-local). |
 | n | `qi` | nvim-lspconfig | LSP hover docs (buffer-local). |
 | n | `gr` | nvim-lspconfig | LSP references (buffer-local). |

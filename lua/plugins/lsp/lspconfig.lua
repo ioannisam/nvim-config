@@ -114,8 +114,8 @@ return {
             end
 
             vim.keymap.set("n", "<leader>le", vim.diagnostic.open_float, { desc = "Diagnostics: Open float" })
-            vim.keymap.set("n", "pd", function() vim.diagnostic.jump({ count = -1, float = true }) end, { desc = "Diagnostics: Previous" })
-            vim.keymap.set("n", "nd", function() vim.diagnostic.jump({ count = 1, float = true }) end, { desc = "Diagnostics: Next" })
+            vim.keymap.set("n", "[d", function() vim.diagnostic.jump({ count = -1, float = true }) end, { desc = "Diagnostics: Previous" })
+            vim.keymap.set("n", "]d", function() vim.diagnostic.jump({ count = 1, float = true }) end, { desc = "Diagnostics: Next" })
         end,
     },
 }
