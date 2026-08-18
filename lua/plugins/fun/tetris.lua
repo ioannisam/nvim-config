@@ -2,8 +2,6 @@ return {
     "alec-gibson/nvim-tetris",
     cmd = "Tetris",
     config = function()
-        -- The game binds the arrow keys and then <nop>s every letter key,
-        -- so hjkl have to be re-bound after its own mappings are installed.
         vim.api.nvim_create_autocmd("FileType", {
             group = vim.api.nvim_create_augroup("tetris_hjkl", { clear = true }),
             pattern = "tetris",
